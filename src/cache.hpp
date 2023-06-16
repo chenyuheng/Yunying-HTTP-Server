@@ -9,14 +9,17 @@
 namespace yunying {
     class Cache {
     public:
+        Cache();
         Cache(int max_size_bytes);
         ~Cache();
 
-        std::string get(const HttpRequest request);
+        HttpResponse get(const HttpRequest request);
     
     private:
-        std::unordered_map<std::string, std::string> cache;
-        std::unordered_map<std::string, int> expires;
+        int max_size_bytes_;
+        int size_bytes_;
+        std::unordered_map<std::string, std::string> cache_;
+        std::unordered_map<std::string, int> expires_;
     };
 } // namespace yunying
 
