@@ -13,7 +13,7 @@ namespace yunying {
         Cache(int max_size_bytes);
         ~Cache();
 
-        HttpResponse get(const HttpRequest request);
+        HttpResponse* get(const HttpRequest request);
     
     private:
         int max_size_bytes_;

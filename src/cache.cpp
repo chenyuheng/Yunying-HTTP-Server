@@ -22,9 +22,9 @@ namespace yunying {
         // TODO
     }
 
-    HttpResponse Cache::get(const HttpRequest request) {
-        HttpResponse response = HttpResponse();
-        response.set_body("Hello, world!\n");
+    HttpResponse* Cache::get(const HttpRequest request) {
+        HttpResponse* response = new HttpResponse();
+        response->set_body("Hello, world!\n");
         return response;
     }
 }

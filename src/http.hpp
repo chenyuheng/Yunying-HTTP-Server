@@ -3,6 +3,8 @@
 
 #include <string>
 #include <unordered_map>
+#include <iostream>
+#include <unistd.h>
 
 namespace yunying {
     enum class HttpMethod {
@@ -31,6 +33,7 @@ namespace yunying {
         HttpMethod method_;
         std::string path_;
         std::string host_;
+        bool failed_;
     public:
         HttpRequest();
         HttpRequest(int fd);
@@ -39,6 +42,7 @@ namespace yunying {
         HttpMethod get_method() { return method_; }
         std::string get_path() { return path_; }
         std::string get_host() { return host_; }
+        bool failed() { return failed_; }
         void set_header(const std::string key, const std::string value);
         void set_method(HttpMethod method);
         void set_path(const std::string path);

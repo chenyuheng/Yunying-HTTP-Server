@@ -13,11 +13,14 @@
 #include <thread>
 #include <mutex>
 #include <vector>
+#include <unistd.h>
+#include <signal.h>
 
 namespace yunying {
     class Server {
     public:
         Server();
+        Server(Conf conf);
         ~Server();
         void start();
     private:
@@ -25,14 +28,27 @@ namespace yunying {
         Cache cache_;
         uint16_t port_;
         int listen_socket_;
-        int epollFd_;
-        std::mutex epoll_mutex_;
+        std::vector<int> epoll_fds_;
         std::thread listen_thread_;
         std::vector<std::thread> request_threads_;
         int startListen();
         int startEpoll();
         int handleListen();
-        int handleRequest();
+        int handleRequest(int worker_id);
+    };
+
+    class Connection {
+    private:
+        int fd_;
+        HttpRequest* request_;
+        HttpResponse* response_;
+    public:
+        Connection();
+        Connection(int fd);
+        ~Connection();
+        void setResponse(HttpResponse* response) { response_ = response; }
+        HttpResponse* getResponse() { return response_; }
+        int getFd() { return fd_; }
     };
 } // namespace yunying
 

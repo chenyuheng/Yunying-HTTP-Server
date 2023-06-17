@@ -1,21 +1,21 @@
 #include "http.hpp"
 
-#include <iostream>
-#include <unistd.h>
-
 namespace yunying {
     HttpRequest::HttpRequest() {
         method_ = HttpMethod::GET;
         path_ = "/";
         host_ = "";
+        failed_ = false;
     }
 
     HttpRequest::HttpRequest(int fd) {
+        failed_ = false;
         char buffer[1<<15];
         int bytes_read = read(fd, buffer, 1<<15);
-        // std::string request_string = std::string(buffer, bytes_read);
-        // std::cout << "got request length: " << bytes_read << std::endl;
-        // std::cout << request_string << std::endl;
+        if (bytes_read == 0) {
+            failed_ = true;
+            close(fd);
+        }
     }
 
     HttpRequest::~HttpRequest() {
@@ -52,7 +52,7 @@ namespace yunying {
     }
 
     HttpResponse::~HttpResponse() {
-        // TODO
+        printf("HttpResponse destructor\n");
     }
 
     void HttpResponse::set_header(const std::string key, const std::string value) {
@@ -68,13 +68,16 @@ namespace yunying {
     }
 
     void HttpResponse::send(int fd) {
-        headers_["Content-Length"] = std::to_string(body_.length());
+        body_ = "Hello, world!\n";
+        HttpStatus status = HttpStatus::OK;
+        std::unordered_map<std::string, std::string> headers;
+        headers["Content-Length"] = std::to_string(body_.length());
         std::string response = "HTTP/1.1 ";
-        response += std::to_string(static_cast<int>(status_));
+        response += std::to_string(static_cast<int>(status));
         response += " ";
-        response += StatusString[status_];
+        response += StatusString[status];
         response += "\r\n";
-        for (auto header : headers_) {
+        for (auto header : headers) {
             response += header.first;
             response += ": ";
             response += header.second;
