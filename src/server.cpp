@@ -73,32 +73,30 @@ namespace yunying {
                 Connection* conn = reinterpret_cast<Connection *>(events[i].data.ptr);
                 int fd = conn->getFd();
                 if (events[i].events & EPOLLIN) {
-                    HttpRequest request = HttpRequest(fd);
-                    if (request.failed()) {
+                    conn->recv();
+                    if (conn->getFdClosed()) {
                         epoll_ctl(epoll_fds_[worker_id], EPOLL_CTL_DEL, fd, NULL);
-                        continue;
+                        delete conn;
+                    } else if (conn->getRecvDone()) {
+                        HttpRequest req = HttpRequest(conn->getReceivedRaw());
+                        HttpResponse* resp = cache_.get(req);
+                        conn->setResponse(resp);
+                        events[i].events = EPOLLOUT;
+                        epoll_ctl(epoll_fds_[worker_id], EPOLL_CTL_MOD, fd, &events[i]);
                     }
-                    HttpResponse* response = cache_.get(request);
-                    conn->setResponse(response);
-                    struct epoll_event event;
-                    event.events = EPOLLOUT;
-                    event.data.ptr = (void *) conn;
-                    epoll_ctl(epoll_fds_[worker_id], EPOLL_CTL_MOD, fd, &event);
                 } else if (events[i].events & EPOLLOUT) {
-                    HttpResponse *response = conn->getResponse();
-                    response->send(fd);
-                    struct epoll_event event;
-                    event.events = EPOLLIN;
-                    event.data.ptr = (void *) conn;
-                    epoll_ctl(epoll_fds_[worker_id], EPOLL_CTL_MOD, fd, &event);
-                } else if (events[i].events & EPOLLRDHUP ) {
-                    printf("Client closed connection\n");
-                    close(fd);
-                    epoll_ctl(epoll_fds_[worker_id], EPOLL_CTL_DEL, fd, NULL);
+                    if (!conn->getSendStarted()) {
+                        conn->setSendRaw(conn->getResponse()->to_string());
+                    }
+                    conn->send();
+                    if (conn->getSendDone()) {
+                        events[i].events = EPOLLIN;
+                        epoll_ctl(epoll_fds_[worker_id], EPOLL_CTL_MOD, fd, &events[i]);
+                    }
                 } else {
-                    printf("Unknown event\n");
                     close(fd);
                     epoll_ctl(epoll_fds_[worker_id], EPOLL_CTL_DEL, fd, NULL);
+                    delete conn;
                 }
             }
         }
@@ -121,20 +119,4 @@ namespace yunying {
         }
         printf("All working threads started\n");
     }
-
-    Connection::Connection() {
-        fd_ = -1;
-    }
-
-    Connection::Connection(int fd) {
-        fd_ = fd;
-    }
-
-    Connection::~Connection() {
-        if (fd_ != -1) {
-            close(fd_);
-        }
-    }
-
-
 }

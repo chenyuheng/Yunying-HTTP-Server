@@ -5,26 +5,96 @@
 #include <unordered_map>
 #include <iostream>
 #include <unistd.h>
+#include <vector>
 
 namespace yunying {
     enum class HttpMethod {
         GET,
+        POST,
         HEAD,
-        OPTIONS
+        PUT,
+        DELETE,
+        CONNECT,
+        OPTIONS,
+        TRACE,
+        PATCH,
+        OTHER
     };
 
     enum class HttpStatus {
         OK = 200,
         PARTIAL_CONTENT = 206,
+        MULTIPLE_CHOICES = 300,
+        MOVED_PERMANENTLY = 301,
+        FOUND = 302,
+        NOT_MODIFIED = 304,        
+        BAD_REQUEST = 400,
         NOT_FOUND = 404,
-        NOT_IMPLEMENTED = 501
+        METHOD_NOT_ALLOWED = 405,
+        INTERNAL_SERVER_ERROR = 500,
+        NOT_IMPLEMENTED = 501,
+        HTTP_VERSION_NOT_SUPPORTED = 505
+    };
+
+    enum class HttpVersion {
+        HTTP_1_0,
+        HTTP_1_1,
+        HTTP_2_0,
+        HTTP_3_0,
+        OTHER
+    };
+
+    static std::unordered_map<HttpMethod, std::string> MethodString = {
+        {HttpMethod::GET, "GET"},
+        {HttpMethod::POST, "POST"},
+        {HttpMethod::HEAD, "HEAD"},
+        {HttpMethod::PUT, "PUT"},
+        {HttpMethod::DELETE, "DELETE"},
+        {HttpMethod::CONNECT, "CONNECT"},
+        {HttpMethod::OPTIONS, "OPTIONS"},
+        {HttpMethod::TRACE, "TRACE"},
+        {HttpMethod::PATCH, "PATCH"}
+    };
+
+    static std::unordered_map<std::string, HttpMethod> MethodDict = {
+        {"GET", HttpMethod::GET},
+        {"POST", HttpMethod::POST},
+        {"HEAD", HttpMethod::HEAD},
+        {"PUT", HttpMethod::PUT},
+        {"DELETE", HttpMethod::DELETE},
+        {"CONNECT", HttpMethod::CONNECT},
+        {"OPTIONS", HttpMethod::OPTIONS},
+        {"TRACE", HttpMethod::TRACE},
+        {"PATCH", HttpMethod::PATCH}
     };
 
     static std::unordered_map<HttpStatus, std::string> StatusString = {
         {HttpStatus::OK, "OK"},
         {HttpStatus::PARTIAL_CONTENT, "Partial Content"},
+        {HttpStatus::MULTIPLE_CHOICES, "Multiple Choices"},
+        {HttpStatus::MOVED_PERMANENTLY, "Moved Permanently"},
+        {HttpStatus::FOUND, "Found"},
+        {HttpStatus::NOT_MODIFIED, "Not Modified"},
+        {HttpStatus::BAD_REQUEST, "Bad Request"},
         {HttpStatus::NOT_FOUND, "Not Found"},
-        {HttpStatus::NOT_IMPLEMENTED, "Not Implemented"}
+        {HttpStatus::METHOD_NOT_ALLOWED, "Method Not Allowed"},
+        {HttpStatus::INTERNAL_SERVER_ERROR, "Internal Server Error"},
+        {HttpStatus::NOT_IMPLEMENTED, "Not Implemented"},
+        {HttpStatus::HTTP_VERSION_NOT_SUPPORTED, "HTTP Version Not Supported"}
+    };
+
+    static std::unordered_map<HttpVersion, std::string> HttpVersionString = {
+        {HttpVersion::HTTP_1_0, "HTTP/1.0"},
+        {HttpVersion::HTTP_1_1, "HTTP/1.1"},
+        {HttpVersion::HTTP_2_0, "HTTP/2.0"},
+        {HttpVersion::HTTP_3_0, "HTTP/3.0"}
+    };
+
+    static std::unordered_map<std::string, HttpVersion> HttpVersionDict = {
+        {"HTTP/1.0", HttpVersion::HTTP_1_0},
+        {"HTTP/1.1", HttpVersion::HTTP_1_1},
+        {"HTTP/2.0", HttpVersion::HTTP_2_0},
+        {"HTTP/3.0", HttpVersion::HTTP_3_0}
     };
 
     class HttpRequest {
@@ -32,22 +102,26 @@ namespace yunying {
         std::unordered_map<std::string, std::string> headers_;
         HttpMethod method_;
         std::string path_;
+        HttpVersion http_version_;
         std::string host_;
+        std::string body_;
         bool failed_;
     public:
         HttpRequest();
-        HttpRequest(int fd);
+        HttpRequest(std::string request_raw);
         ~HttpRequest();
         std::unordered_map<std::string, std::string> get_headers() { return headers_;}
         HttpMethod get_method() { return method_; }
         std::string get_path() { return path_; }
+        HttpVersion get_http_version() { return http_version_; }
         std::string get_host() { return host_; }
+        std::string get_body() { return body_; }
         bool failed() { return failed_; }
         void set_header(const std::string key, const std::string value);
         void set_method(HttpMethod method);
         void set_path(const std::string path);
         void set_host(const std::string host);
-        void send(int fd);
+        void set_body(const std::string body);
     };
 
     class HttpResponse {
@@ -57,7 +131,6 @@ namespace yunying {
         std::string body_;
     public:
         HttpResponse();
-        HttpResponse(int fd);
         ~HttpResponse();
         std::unordered_map<std::string, std::string> get_headers() { return headers_; }
         HttpStatus get_status() { return status_; }
@@ -65,10 +138,9 @@ namespace yunying {
         void set_header(const std::string key, const std::string value);
         void set_status(HttpStatus status);
         void set_body(const std::string body);
-        void send(int fd);
+
+        std::string to_string();
     };
 } // namespace yunying
-
-
 
 #endif // YY_HTTP

@@ -1,20 +1,24 @@
 #ifndef YY_SERVER
 #define YY_SERVER
 
-#include "conf.hpp"
-#include "http.hpp"
 #include "cache.hpp"
+#include "conf.hpp"
+#include "connection.hpp"
+#include "http.hpp"
+
 
 #include <cstdint>
-#include <stdexcept>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <sys/epoll.h>
-#include <thread>
 #include <mutex>
-#include <vector>
-#include <unistd.h>
+#include <netinet/in.h>
 #include <signal.h>
+#include <stdexcept>
+#include <sys/epoll.h>
+#include <sys/socket.h>
+#include <thread>
+#include <unistd.h>
+#include <vector>
+
+
 
 namespace yunying {
     class Server {
@@ -35,20 +39,6 @@ namespace yunying {
         int startEpoll();
         int handleListen();
         int handleRequest(int worker_id);
-    };
-
-    class Connection {
-    private:
-        int fd_;
-        HttpRequest* request_;
-        HttpResponse* response_;
-    public:
-        Connection();
-        Connection(int fd);
-        ~Connection();
-        void setResponse(HttpResponse* response) { response_ = response; }
-        HttpResponse* getResponse() { return response_; }
-        int getFd() { return fd_; }
     };
 } // namespace yunying
 
