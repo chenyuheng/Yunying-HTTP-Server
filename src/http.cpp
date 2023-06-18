@@ -11,6 +11,7 @@ namespace yunying {
     }
 
     HttpRequest::HttpRequest(std::string request_raw) {
+        auto start_time = std::chrono::system_clock::now();
         failed_ = false;
         std::string header_raw = request_raw.substr(0, request_raw.find("\r\n\r\n"));
         std::string body_raw = request_raw.substr(request_raw.find("\r\n\r\n") + 4);
@@ -26,9 +27,9 @@ namespace yunying {
                 header_line += header_raw[i];
             }
         }
-        for (auto & c: header_lines[0]) c = toupper(c);
         // parse header
         std::string method_str = header_lines[0].substr(0, header_lines[0].find(" "));
+        for (auto & c: method_str) c = toupper(c);
         if (MethodDict.find(method_str) == MethodDict.end()) {
             method_ = HttpMethod::OTHER;
         } else {
@@ -36,6 +37,7 @@ namespace yunying {
         }
         path_ = header_lines[0].substr(header_lines[0].find(" ") + 1, header_lines[0].rfind(" ") - header_lines[0].find(" ") - 1);
         std::string http_version_str = header_lines[0].substr(header_lines[0].rfind(" ") + 1);
+        for (auto & c: http_version_str) c = toupper(c);
         if (HttpVersionDict.find(http_version_str) == HttpVersionDict.end()) {
             http_version_ = HttpVersion::OTHER;
         } else {
@@ -49,6 +51,10 @@ namespace yunying {
         }
         host_ = headers_["HOST"];
         body_ = body_raw;
+        auto end_time = std::chrono::system_clock::now();
+        std::chrono::duration<double> elapsed_seconds = end_time - start_time;
+        Metrics::getInstance().count("parse_time", elapsed_seconds.count());
+        Metrics::getInstance().count("parse_count", 1);
     }
 
     HttpRequest::~HttpRequest() {

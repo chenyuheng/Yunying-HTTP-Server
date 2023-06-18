@@ -1,6 +1,10 @@
 #ifndef YY_HTTP
 #define YY_HTTP
 
+#include "metrics.hpp"
+
+#include <chrono>
+#include <ctime>  
 #include <string>
 #include <unordered_map>
 #include <iostream>
@@ -110,7 +114,11 @@ namespace yunying {
         HttpRequest();
         HttpRequest(std::string request_raw);
         ~HttpRequest();
-        std::unordered_map<std::string, std::string> get_headers() { return headers_;}
+        std::string get_header(std::string key) {
+            std::string upper_key = key;
+            for (auto &c : upper_key) c = toupper(c);
+            return headers_[upper_key];
+        }
         HttpMethod get_method() { return method_; }
         std::string get_path() { return path_; }
         HttpVersion get_http_version() { return http_version_; }

@@ -2,6 +2,7 @@
 #define YY_CONNECTION
 
 #include "http.hpp"
+#include "metrics.hpp"
 
 namespace yunying {
     class Connection {

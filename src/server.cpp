@@ -3,13 +3,15 @@
 namespace yunying {
     Server::Server(Conf conf) {
         conf_ = conf;
-        cache_ = Cache(conf_.get_cache_size_bytes());
+        origin_ = new StaticFileOrigin(conf_.get_root_dir());
+        cache_ = new Cache(origin_, conf_.get_cache_size_bytes());
         port_ = conf_.get_port();
     }
 
     Server::Server() {
         conf_ = Conf();
-        cache_ = Cache(conf_.get_cache_size_bytes());
+        origin_ = new StaticFileOrigin(conf_.get_root_dir());
+        cache_ = new Cache(origin_, conf_.get_cache_size_bytes());
         port_ = conf_.get_port();
     }
 
@@ -79,7 +81,7 @@ namespace yunying {
                         delete conn;
                     } else if (conn->getRecvDone()) {
                         HttpRequest req = HttpRequest(conn->getReceivedRaw());
-                        HttpResponse* resp = cache_.get(req);
+                        HttpResponse* resp = cache_->get(req);
                         conn->setResponse(resp);
                         events[i].events = EPOLLOUT;
                         epoll_ctl(epoll_fds_[worker_id], EPOLL_CTL_MOD, fd, &events[i]);

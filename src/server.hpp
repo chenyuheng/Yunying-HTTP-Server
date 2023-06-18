@@ -5,7 +5,7 @@
 #include "conf.hpp"
 #include "connection.hpp"
 #include "http.hpp"
-
+#include "origin.hpp"
 
 #include <cstdint>
 #include <mutex>
@@ -18,8 +18,6 @@
 #include <unistd.h>
 #include <vector>
 
-
-
 namespace yunying {
     class Server {
     public:
@@ -29,7 +27,8 @@ namespace yunying {
         void start();
     private:
         Conf conf_;
-        Cache cache_;
+        Origin* origin_;
+        Cache* cache_;
         uint16_t port_;
         int listen_socket_;
         std::vector<int> epoll_fds_;

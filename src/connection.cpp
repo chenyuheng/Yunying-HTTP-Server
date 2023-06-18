@@ -1,5 +1,5 @@
     
-#include "connection.hpp"
+#include "connection.hpp" 
 
 namespace yunying {
     Connection::Connection(int fd) {
@@ -18,6 +18,7 @@ namespace yunying {
     }
 
     void Connection::recv() {
+        auto start_time = std::chrono::system_clock::now();
         char buf[1024];
         if (recv_done_) {
             recv_done_ = false;
@@ -48,6 +49,10 @@ namespace yunying {
                 recv_done_ = true;
             }
         }
+        auto end_time = std::chrono::system_clock::now();
+        std::chrono::duration<double> elapsed_seconds = end_time - start_time;
+        Metrics::getInstance().count("recv_time", elapsed_seconds.count());
+        Metrics::getInstance().count("recv_count", 1);
     }
 
     void Connection::send() {

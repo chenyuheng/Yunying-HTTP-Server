@@ -11,11 +11,12 @@ namespace yunying {
         expires_ = std::unordered_map<std::string, int>();
     }
 
-    Cache::Cache(int max_size_bytes) {
+    Cache::Cache(Origin* origin, int max_size_bytes) {
         max_size_bytes_ = max_size_bytes;
         size_bytes_ = 0;
         cache_ = std::unordered_map<std::string, std::string>();
         expires_ = std::unordered_map<std::string, int>();
+        origin_ = origin;
     }
 
     Cache::~Cache() {
@@ -23,8 +24,9 @@ namespace yunying {
     }
 
     HttpResponse* Cache::get(const HttpRequest request) {
-        HttpResponse* response = new HttpResponse();
-        response->set_body("Hello, world!\n");
+        int max_age;
+        std::string key = origin_->getKey(request);
+        HttpResponse* response = origin_->get(request, &max_age);
         return response;
     }
 }
