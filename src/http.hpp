@@ -22,6 +22,7 @@ namespace yunying {
         OPTIONS,
         TRACE,
         PATCH,
+        PURGE,
         OTHER
     };
 
@@ -57,7 +58,8 @@ namespace yunying {
         {HttpMethod::CONNECT, "CONNECT"},
         {HttpMethod::OPTIONS, "OPTIONS"},
         {HttpMethod::TRACE, "TRACE"},
-        {HttpMethod::PATCH, "PATCH"}
+        {HttpMethod::PATCH, "PATCH"},
+        {HttpMethod::PURGE, "PURGE"}
     };
 
     static std::unordered_map<std::string, HttpMethod> MethodDict = {
@@ -69,7 +71,8 @@ namespace yunying {
         {"CONNECT", HttpMethod::CONNECT},
         {"OPTIONS", HttpMethod::OPTIONS},
         {"TRACE", HttpMethod::TRACE},
-        {"PATCH", HttpMethod::PATCH}
+        {"PATCH", HttpMethod::PATCH},
+        {"PURGE", HttpMethod::PURGE}
     };
 
     static std::unordered_map<HttpStatus, std::string> StatusString = {

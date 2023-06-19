@@ -2,6 +2,7 @@
 #define YY_ORIGIN
 
 #include "http.hpp"
+#include "conf.hpp"
 
 namespace yunying {
     class Origin {

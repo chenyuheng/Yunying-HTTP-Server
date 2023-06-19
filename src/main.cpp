@@ -4,14 +4,17 @@
 #include "metrics.hpp"
 
 int main(int argc, char *argv[]) {
-    yunying::Conf conf = yunying::Conf();
     if (argc > 1) {
         uint16_t port = atoi(argv[1]);
         if (port != 0) {
-            conf.set_port(port);
+            yunying::Conf::getInstance().set_port(port);
         }
     }
-    yunying::Server server = yunying::Server(conf);
+    if (argc > 2) {
+        std::string root_dir = argv[2];
+        yunying::Conf::getInstance().set_root_dir(root_dir);
+    }
+    yunying::Server server = yunying::Server();
     server.start();
     printf("Server started\n");
     std::string command;

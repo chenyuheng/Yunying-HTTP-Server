@@ -87,7 +87,6 @@ namespace yunying {
     }
 
     HttpResponse::~HttpResponse() {
-        printf("HttpResponse destructor\n");
     }
 
     void HttpResponse::set_header(const std::string key, const std::string value) {

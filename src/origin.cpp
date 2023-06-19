@@ -22,12 +22,17 @@ namespace yunying {
     }
 
     std::string StaticFileOrigin::getKey(HttpRequest request) {
-        return handleDefault(request.get_path());
+        return MethodString[request.get_method()] + handleDefault(request.get_path());
     }
 
     HttpResponse* StaticFileOrigin::get(HttpRequest request, int* max_age) {
-        std::string path = root_dir_ + handleDefault(request.get_path());
         HttpResponse* response = new HttpResponse();
+        *max_age = Conf::getInstance().get_default_max_age();
+        if (request.get_method() != HttpMethod::GET) {
+            response->set_status(HttpStatus::METHOD_NOT_ALLOWED);
+            return response;
+        }
+        std::string path = root_dir_ + handleDefault(request.get_path());
         FILE* file = fopen(path.c_str(), "rb");
         if (file == NULL) {
             response->set_status(HttpStatus::NOT_FOUND);

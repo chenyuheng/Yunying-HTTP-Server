@@ -1,18 +1,10 @@
 #include "server.hpp"
 
 namespace yunying {
-    Server::Server(Conf conf) {
-        conf_ = conf;
-        origin_ = new StaticFileOrigin(conf_.get_root_dir());
-        cache_ = new Cache(origin_, conf_.get_cache_size_bytes());
-        port_ = conf_.get_port();
-    }
-
     Server::Server() {
-        conf_ = Conf();
-        origin_ = new StaticFileOrigin(conf_.get_root_dir());
-        cache_ = new Cache(origin_, conf_.get_cache_size_bytes());
-        port_ = conf_.get_port();
+        origin_ = new StaticFileOrigin(Conf::getInstance().get_root_dir());
+        cache_ = new Cache(origin_, Conf::getInstance().get_cache_size_bytes());
+        port_ = Conf::getInstance().get_port();
     }
 
     Server::~Server() {
@@ -47,7 +39,7 @@ namespace yunying {
 
     int Server::handleListen() {
         int current_epoll_id = 0;
-        int working_threads_num = conf_.get_working_threads_num();
+        int working_threads_num = Conf::getInstance().get_working_threads_num();
         while (true) {
             struct sockaddr_in clientAddress;
             socklen_t clientAddressLength = sizeof(clientAddress);
@@ -109,13 +101,13 @@ namespace yunying {
         printf("Server started\n");
         listen_socket_ = startListen();
         printf("Listening on port %d\n", port_);
-        for (int i = 0; i < conf_.get_working_threads_num(); i++) {
+        for (int i = 0; i < Conf::getInstance().get_working_threads_num(); i++) {
             epoll_fds_.push_back(startEpoll());
         }
         printf("Epoll started\n");
         listen_thread_ = std::thread(&Server::handleListen, this);
         printf("Listening thread started\n");
-        for (int i = 0; i < conf_.get_working_threads_num(); i++) {
+        for (int i = 0; i < Conf::getInstance().get_working_threads_num(); i++) {
             printf("Starting working thread %d\n", i);
             request_threads_.push_back(std::thread(&Server::handleRequest, this, i));
         }

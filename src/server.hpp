@@ -22,11 +22,9 @@ namespace yunying {
     class Server {
     public:
         Server();
-        Server(Conf conf);
         ~Server();
         void start();
     private:
-        Conf conf_;
         Origin* origin_;
         Cache* cache_;
         uint16_t port_;
