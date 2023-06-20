@@ -3,6 +3,11 @@
 
 #include "http.hpp"
 #include "conf.hpp"
+#include "connection.hpp"
+
+#include <arpa/inet.h>
+#include <sys/socket.h>
+#include <unistd.h>
 
 namespace yunying {
     class Origin {
@@ -16,9 +21,17 @@ namespace yunying {
             std::string root_dir_;
             std::string handleDefault(std::string path);
         public:
-            StaticFileOrigin();
+            StaticFileOrigin() = delete;
             StaticFileOrigin(std::string root_dir);
             ~StaticFileOrigin();
+            std::string getKey(HttpRequest request);
+            HttpResponse* get(HttpRequest request, int* max_age);
+    };
+
+    class UpstreamOrigin : public Origin {
+        public:
+            UpstreamOrigin();
+            ~UpstreamOrigin();
             std::string getKey(HttpRequest request);
             HttpResponse* get(HttpRequest request, int* max_age);
     };

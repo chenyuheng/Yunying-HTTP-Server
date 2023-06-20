@@ -4,6 +4,8 @@
 #include "http.hpp"
 #include "metrics.hpp"
 
+#include <sys/socket.h>
+
 namespace yunying {
     class Connection {
     private:

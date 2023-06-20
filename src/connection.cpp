@@ -19,12 +19,12 @@ namespace yunying {
 
     void Connection::recv() {
         auto start_time = std::chrono::system_clock::now();
-        char buf[1024];
+        char buf[4096];
         if (recv_done_) {
             recv_done_ = false;
             received_raw_ = "";
         }
-        int n = read(fd_, buf, 1024);
+        int n = read(fd_, buf, 4096);
         if (n <= 0) {
             recv_done_ = true;
             fd_closed_ = true;
@@ -60,7 +60,7 @@ namespace yunying {
             send_done_ = false;
             send_offset_ = 0;
         }
-        int n = write(fd_, send_raw_.c_str() + send_offset_, send_raw_.size() - send_offset_);
+        int n = ::send(fd_, send_raw_.c_str() + send_offset_, send_raw_.size() - send_offset_, MSG_NOSIGNAL);
         if (n <= 0) {
             send_done_ = true;
             fd_closed_ = true;

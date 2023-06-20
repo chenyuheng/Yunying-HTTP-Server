@@ -2,10 +2,6 @@
 
 namespace yunying {
 
-    StaticFileOrigin::StaticFileOrigin() {
-        root_dir_ = "/tmp";
-    }
-
     StaticFileOrigin::StaticFileOrigin(std::string root_dir) {
         root_dir_ = root_dir;
     }
@@ -48,5 +44,69 @@ namespace yunying {
             response->set_status(HttpStatus::OK);
         }
         return response;
+    }
+
+    UpstreamOrigin::UpstreamOrigin() {
+    }
+
+    UpstreamOrigin::~UpstreamOrigin() {
+        // TODO
+    }
+
+    std::string UpstreamOrigin::getKey(HttpRequest request) {
+        return request.get_host() + MethodString[request.get_method()] + request.get_path();
+    }
+
+    std::vector<std::string> split(const std::string str, const std::string delimiter) {
+        std::vector<std::string> result;
+        std::string s = str;
+        while (s.find(delimiter) != std::string::npos) {
+            result.push_back(s.substr(0, s.find(delimiter)));
+            s = s.substr(s.find(delimiter) + delimiter.length());
+        }
+        result.push_back(s);
+        return result;
+    }
+
+    HttpResponse* UpstreamOrigin::get(HttpRequest request, int* max_age) {
+        HttpRequest upstream_request;
+        upstream_request.set_method(request.get_method());
+        upstream_request.set_path(request.get_path());
+        upstream_request.set_host(Conf::getInstance().get_upstream_host());
+        upstream_request.set_body(request.get_body());
+
+        std::string upstream_ip = Conf::getInstance().get_upstream_ip();
+        int upstream_port = Conf::getInstance().get_upstream_port();
+        int upstream_fd = socket(AF_INET, SOCK_STREAM, 0);
+        struct sockaddr_in upstream_addr;
+        upstream_addr.sin_family = AF_INET;
+        upstream_addr.sin_port = htons(upstream_port);
+        upstream_addr.sin_addr.s_addr = inet_addr(upstream_ip.c_str());
+        connect(upstream_fd, (struct sockaddr*)&upstream_addr, sizeof(upstream_addr));
+
+        Connection upstream_connection(upstream_fd);
+        upstream_connection.setSendRaw(upstream_request.to_string());
+        while (!upstream_connection.getSendDone()) {
+            upstream_connection.send();
+        }
+        while (!upstream_connection.getRecvDone()) {
+            upstream_connection.recv();
+        }
+        HttpResponse* upstream_response = new HttpResponse(upstream_connection.getReceivedRaw());
+        if (upstream_response->get_header("Cache-Control") != "") {
+            std::vector<std::string> cache_controls = split(upstream_response->get_header("Cache-Control"), ",");
+            for (int i = 0; i < cache_controls.size(); i++) {
+                std::vector<std::string> cache_control = split(cache_controls[i], "=");
+                if (cache_control[0] == "max-age") {
+                    *max_age = std::stoi(cache_control[1]);
+                    break;
+                }
+            }
+        }
+        if (*max_age < Conf::getInstance().get_default_max_age()) {
+            *max_age = Conf::getInstance().get_default_max_age();
+        }
+        Metrics::getInstance().count("upstream_count", 1);
+        return upstream_response;
     }
 }

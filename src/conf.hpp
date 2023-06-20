@@ -18,6 +18,9 @@ namespace yunying {
         uint16_t working_threads_num_ = 5;
         std::string root_dir_ = "/tmp";
         int default_max_age_ = 300;
+        std::string upstream_host_ = "cpc.people.com.cn";
+        std::string upstream_ip_ = "157.185.156.194";
+        uint16_t upstream_port_ = 80;
 
     public:
         static Conf& getInstance() {
@@ -30,6 +33,9 @@ namespace yunying {
         uint16_t get_working_threads_num() { return working_threads_num_; }
         std::string get_root_dir() { return root_dir_; }
         int get_default_max_age() { return default_max_age_; }
+        std::string get_upstream_host() { return upstream_host_; }
+        std::string get_upstream_ip() { return upstream_ip_; }
+        uint16_t get_upstream_port() { return upstream_port_; }
 
         void set_port(uint16_t port) { port_ = port; }
         void set_root_dir(std::string root_dir) { root_dir_ = root_dir; }

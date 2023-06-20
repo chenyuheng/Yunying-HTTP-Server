@@ -3,8 +3,10 @@
 
 #include "metrics.hpp"
 
+#include <algorithm>
 #include <chrono>
 #include <ctime>  
+#include <mutex>
 #include <string>
 #include <unordered_map>
 #include <iostream>
@@ -27,6 +29,7 @@ namespace yunying {
     };
 
     enum class HttpStatus {
+        OTHER = -1,
         OK = 200,
         PARTIAL_CONTENT = 206,
         MULTIPLE_CHOICES = 300,
@@ -120,6 +123,9 @@ namespace yunying {
         std::string get_header(std::string key) {
             std::string upper_key = key;
             for (auto &c : upper_key) c = toupper(c);
+            if (headers_.find(upper_key) == headers_.end()) {
+                return "";
+            }
             return headers_[upper_key];
         }
         HttpMethod get_method() { return method_; }
@@ -133,17 +139,29 @@ namespace yunying {
         void set_path(const std::string path);
         void set_host(const std::string host);
         void set_body(const std::string body);
+
+        std::string to_string();
     };
 
     class HttpResponse {
     private:
         std::unordered_map<std::string, std::string> headers_;
+        HttpVersion http_version_;
         HttpStatus status_;
         std::string body_;
     public:
         HttpResponse();
+        HttpResponse(std::string response_raw);
         ~HttpResponse();
-        std::unordered_map<std::string, std::string> get_headers() { return headers_; }
+        std::string get_header(std::string key) {
+            std::string upper_key = key;
+            for (auto &c : upper_key) c = toupper(c);
+            if (headers_.find(upper_key) == headers_.end()) {
+                return "";
+            }
+            return headers_[upper_key];
+        }
+        HttpVersion get_http_version() { return http_version_; }
         HttpStatus get_status() { return status_; }
         std::string get_body() { return body_; }
         void set_header(const std::string key, const std::string value);

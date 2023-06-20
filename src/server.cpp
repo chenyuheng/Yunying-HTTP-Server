@@ -2,7 +2,7 @@
 
 namespace yunying {
     Server::Server() {
-        origin_ = new StaticFileOrigin(Conf::getInstance().get_root_dir());
+        origin_ = new UpstreamOrigin();
         cache_ = new Cache(origin_, Conf::getInstance().get_cache_size_bytes());
         port_ = Conf::getInstance().get_port();
     }
@@ -38,6 +38,7 @@ namespace yunying {
     }
 
     int Server::handleListen() {
+        signal(SIGPIPE, SIG_IGN);
         int current_epoll_id = 0;
         int working_threads_num = Conf::getInstance().get_working_threads_num();
         while (true) {
@@ -55,11 +56,13 @@ namespace yunying {
                 throw std::runtime_error("Failed to add client socket to epoll");
             }
             current_epoll_id %= working_threads_num;
+            Metrics::getInstance().count("accept_count", 1);
         }
     }
 
     int Server::handleRequest(int worker_id) {
         printf("[IN]working thread started\n");
+        signal(SIGPIPE, SIG_IGN);
         struct epoll_event events[10];
         while (true) {
             int n = epoll_wait(epoll_fds_[worker_id], events, 10, -1);
@@ -86,11 +89,13 @@ namespace yunying {
                     if (conn->getSendDone()) {
                         events[i].events = EPOLLIN;
                         epoll_ctl(epoll_fds_[worker_id], EPOLL_CTL_MOD, fd, &events[i]);
+                        Metrics::getInstance().count("response_count", 1);
                     }
                 } else {
                     close(fd);
                     epoll_ctl(epoll_fds_[worker_id], EPOLL_CTL_DEL, fd, NULL);
                     delete conn;
+                    Metrics::getInstance().count("unexpected_close_count", 1);
                 }
             }
         }

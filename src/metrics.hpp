@@ -3,6 +3,7 @@
 
 #include <string>
 #include <unordered_map>
+#include <mutex>
 
 namespace yunying {
     class Metrics {
@@ -12,6 +13,7 @@ namespace yunying {
             return instance;
         }
         void count(std::string key, double value) {
+            std::lock_guard<std::mutex> lock(mutex_);
             if (metrics_.find(key) == metrics_.end()) {
                 metrics_[key] = value;
             } else {
@@ -32,6 +34,8 @@ namespace yunying {
         Metrics() {}
         Metrics(Metrics const&);
         void operator=(Metrics const&);
+
+        std::mutex mutex_;
     };
 }
 

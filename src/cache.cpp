@@ -31,12 +31,14 @@ namespace yunying {
         }
         int max_age;
         HttpResponse* response = origin_->get(request, &max_age);
+        if (response->get_body().size() > max_size_bytes_) {
+            return response;
+        }
         int timestamp = time(NULL);
         expires_.push(std::make_pair(timestamp + max_age, response));
         cache_[key] = response;
         reverse_cache_[response] = key;
         size_bytes_ += response->get_body().length();
-        clean();
         return response;
     }
 
