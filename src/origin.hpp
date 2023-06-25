@@ -4,6 +4,7 @@
 #include "http.hpp"
 #include "conf.hpp"
 #include "connection.hpp"
+#include "util.hpp"
 
 #include <arpa/inet.h>
 #include <sys/socket.h>
@@ -21,8 +22,7 @@ namespace yunying {
             std::string root_dir_;
             std::string handleDefault(std::string path);
         public:
-            StaticFileOrigin() = delete;
-            StaticFileOrigin(std::string root_dir);
+            StaticFileOrigin();
             ~StaticFileOrigin();
             std::string getKey(HttpRequest request);
             HttpResponse* get(HttpRequest request, int* max_age);

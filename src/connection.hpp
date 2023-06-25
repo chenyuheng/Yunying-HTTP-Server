@@ -11,6 +11,7 @@ namespace yunying {
     private:
         int fd_;
         std::string received_raw_;
+        std::string received_buffer_;
         std::string send_raw_;
         int send_offset_;
         bool recv_done_;

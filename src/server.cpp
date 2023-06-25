@@ -3,8 +3,14 @@
 namespace yunying {
     Server::Server() {
         origin_ = new UpstreamOrigin();
+        if (Conf::getInstance().get_origin_type() == OriginType::StaticFile) {
+            origin_ = new StaticFileOrigin();
+        } else if (Conf::getInstance().get_origin_type() == OriginType::Upstream) {
+            origin_ = new UpstreamOrigin();
+        }
         cache_ = new Cache(origin_, Conf::getInstance().get_cache_size_bytes());
         port_ = Conf::getInstance().get_port();
+        bad_request_response_.set_status(HttpStatus::BAD_REQUEST);
     }
 
     Server::~Server() {
@@ -45,7 +51,8 @@ namespace yunying {
             struct sockaddr_in clientAddress;
             socklen_t clientAddressLength = sizeof(clientAddress);
             int client_fd = accept(listen_socket_, (struct sockaddr *) &clientAddress, &clientAddressLength);
-            if (client_fd < 0) {
+            if (client_fd <= 0) {
+                perror("accept");
                 throw std::runtime_error("Failed to accept client socket");
             }
             struct epoll_event event;
@@ -69,21 +76,30 @@ namespace yunying {
             for (int i = 0; i < n; i++) {
                 Connection* conn = reinterpret_cast<Connection *>(events[i].data.ptr);
                 int fd = conn->getFd();
-                if (events[i].events & EPOLLIN) {
+                if (events[i].events == EPOLLIN) {
                     conn->recv();
                     if (conn->getFdClosed()) {
                         epoll_ctl(epoll_fds_[worker_id], EPOLL_CTL_DEL, fd, NULL);
                         delete conn;
                     } else if (conn->getRecvDone()) {
+                        //printf("Client socket %d recv done\n", fd);
                         HttpRequest req = HttpRequest(conn->getReceivedRaw());
-                        HttpResponse* resp = cache_->get(req);
+                        //printf("Request: %s\n", req.to_string().c_str());
+                        HttpResponse* resp;
+                        if (req.failed()) {
+                            resp = &bad_request_response_;
+                        } else {
+                            resp = cache_->get(req);
+                            // printf("cache Response: %s\n", resp->to_string().c_str());
+                        }
                         conn->setResponse(resp);
                         events[i].events = EPOLLOUT;
                         epoll_ctl(epoll_fds_[worker_id], EPOLL_CTL_MOD, fd, &events[i]);
                     }
-                } else if (events[i].events & EPOLLOUT) {
+                } else if (events[i].events == EPOLLOUT) {
                     if (!conn->getSendStarted()) {
                         conn->setSendRaw(conn->getResponse()->to_string());
+                        // printf("Response: %s\n", conn->getResponse()->to_string().c_str());
                     }
                     conn->send();
                     if (conn->getSendDone()) {
@@ -92,7 +108,6 @@ namespace yunying {
                         Metrics::getInstance().count("response_count", 1);
                     }
                 } else {
-                    close(fd);
                     epoll_ctl(epoll_fds_[worker_id], EPOLL_CTL_DEL, fd, NULL);
                     delete conn;
                     Metrics::getInstance().count("unexpected_close_count", 1);

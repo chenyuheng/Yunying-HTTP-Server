@@ -1,25 +1,5 @@
 #include "http.hpp"
 
-// trim from start (in place)
-static inline void ltrim(std::string &s) {
-    s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char ch) {
-        return !std::isspace(ch);
-    }));
-}
-
-// trim from end (in place)
-static inline void rtrim(std::string &s) {
-    s.erase(std::find_if(s.rbegin(), s.rend(), [](unsigned char ch) {
-        return !std::isspace(ch);
-    }).base(), s.end());
-}
-
-// trim from both ends (in place)
-static inline void trim(std::string &s) {
-    rtrim(s);
-    ltrim(s);
-}
-
 namespace yunying {
     HttpRequest::HttpRequest() {
         method_ = HttpMethod::GET;
@@ -31,15 +11,27 @@ namespace yunying {
     }
 
     HttpRequest::HttpRequest(std::string request_raw) {
+        if (request_raw.size() == 0) {
+            failed_ = true;
+            Metrics::getInstance().count("failed_parse_count", 1);
+            return;
+        }
         auto start_time = std::chrono::system_clock::now();
         failed_ = false;
-        std::string header_raw = request_raw.substr(0, request_raw.find("\r\n\r\n"));
-        std::string body_raw = request_raw.substr(request_raw.find("\r\n\r\n") + 4);
+        size_t CRLF_pos = request_raw.find("\r\n\r\n");
+        if (CRLF_pos == std::string::npos) {
+            failed_ = true;
+            Metrics::getInstance().count("failed_parse_count", 1);
+            return;
+        }
+        std::string header_raw = request_raw.substr(0, CRLF_pos);
+        std::string body_raw = request_raw.substr(CRLF_pos + 4);
         // split header to lines
         std::vector<std::string> header_lines;
         std::string header_line = "";
         for (int i = 0; i < header_raw.size(); i++) {
             if (header_raw[i] == '\r' && header_raw[i + 1] == '\n') {
+                trim(header_line);
                 header_lines.push_back(header_line);
                 header_line = "";
                 i++;
@@ -47,26 +39,37 @@ namespace yunying {
                 header_line += header_raw[i];
             }
         }
-        // parse header
-        std::string method_str = header_lines[0].substr(0, header_lines[0].find(" "));
-        for (auto & c: method_str) c = toupper(c);
+        header_lines.push_back(header_line);
+        // parse request line
+        std::vector<std::string> request_line = split(header_lines[0], " ");
+        if (request_line.size() != 3) {
+            failed_ = true;
+            Metrics::getInstance().count("failed_parse_count", 1);
+            return;
+        }
+        std::string method_str = request_line[0];
         if (MethodDict.find(method_str) == MethodDict.end()) {
             method_ = HttpMethod::OTHER;
-        } else {
-            method_ = MethodDict[method_str];
+            failed_ = true;
+            Metrics::getInstance().count("failed_parse_count", 1);
+            return;
         }
-        path_ = header_lines[0].substr(header_lines[0].find(" ") + 1, header_lines[0].rfind(" ") - header_lines[0].find(" ") - 1);
-        std::string http_version_str = header_lines[0].substr(header_lines[0].rfind(" ") + 1);
+        method_ = MethodDict[method_str];
+        path_ = request_line[1];
+        std::string http_version_str = request_line[2];
         for (auto & c: http_version_str) c = toupper(c);
         if (HttpVersionDict.find(http_version_str) == HttpVersionDict.end()) {
             http_version_ = HttpVersion::OTHER;
         } else {
             http_version_ = HttpVersionDict[http_version_str];
         }
+
+        // parse headers
         for (int i = 1; i < header_lines.size(); i++) {
-            std::string key = header_lines[i].substr(0, header_lines[i].find(":"));
+            std::vector<std::string> header_line = split(header_lines[i], ":", 2);
+            std::string key = header_line[0];
             for (auto & c: key) c = toupper(c);
-            std::string value = header_lines[i].substr(header_lines[i].find(":") + 1);
+            std::string value = header_line[1];
             trim(value);
             headers_[key] = value;
         }
@@ -104,6 +107,9 @@ namespace yunying {
     }
 
     std::string HttpRequest::to_string() {
+        if (failed_) {
+            return "failed request";
+        }
         std::string request_raw = "";
         request_raw += MethodString[method_] + " " + path_ + " " + HttpVersionString[http_version_] + "\r\n";
         for (auto it = headers_.begin(); it != headers_.end(); it++) {
@@ -121,8 +127,14 @@ namespace yunying {
 
     HttpResponse::HttpResponse(std::string response_raw) {
         auto start_time = std::chrono::system_clock::now();
-        std::string header_raw = response_raw.substr(0, response_raw.find("\r\n\r\n"));
-        std::string body_raw = response_raw.substr(response_raw.find("\r\n\r\n") + 4);
+        size_t CRLF_pos = response_raw.find("\r\n\r\n");
+        if (CRLF_pos == std::string::npos) {
+            failed_ = true;
+            Metrics::getInstance().count("failed_parse_count", 1);
+            return;
+        }
+        std::string header_raw = response_raw.substr(0, CRLF_pos);
+        std::string body_raw = response_raw.substr(CRLF_pos + 4);
         // split header to lines
         std::vector<std::string> header_lines;
         std::string header_line = "";
@@ -135,15 +147,22 @@ namespace yunying {
                 header_line += header_raw[i];
             }
         }
+        header_lines.push_back(header_line);
         // parse header
-        std::string http_version_str = header_lines[0].substr(0, header_lines[0].find(" "));
+        std::vector<std::string> status_line = split(header_lines[0], " ", 3);
+        if (status_line.size() < 3) {
+            failed_ = true;
+            Metrics::getInstance().count("failed_parse_count", 1);
+            return;
+        }
+        std::string http_version_str = status_line[0];
         for (auto & c: http_version_str) c = toupper(c);
         if (HttpVersionDict.find(http_version_str) == HttpVersionDict.end()) {
             http_version_ = HttpVersion::OTHER;
         } else {
             http_version_ = HttpVersionDict[http_version_str];
         }
-        std::string status_str = header_lines[0].substr(header_lines[0].find(" ") + 1, 3);
+        std::string status_str = status_line[1];
         int status_code = std::stoi(status_str);
         if (StatusString.find((HttpStatus)status_code) == StatusString.end()) {
             status_ = HttpStatus::OTHER;
@@ -153,6 +172,7 @@ namespace yunying {
         for (int i = 1; i < header_lines.size(); i++) {
             std::string key = header_lines[i].substr(0, header_lines[i].find(":"));
             for (auto & c: key) c = toupper(c);
+            if (key == "TRANSFER-ENCODING") continue;
             std::string value = header_lines[i].substr(header_lines[i].find(":") + 1);
             trim(value);
             headers_[key] = value;
@@ -176,6 +196,7 @@ namespace yunying {
     }
 
     void HttpResponse::set_body(const std::string body) {
+        printf("body: %s\n", body.c_str());
         body_ = body;
     }
 
@@ -188,7 +209,9 @@ namespace yunying {
         response_raw += "HTTP/1.1 ";
         response_raw += std::to_string((int)status_) + " " + status_str;
         response_raw += "\r\n";
-        headers_["Content-Length"] = std::to_string(body_.size());
+        //if (body_.size() > 0) {
+            headers_["CONTENT-LENGTH"] = std::to_string(body_.size());
+        //}
         for (auto it = headers_.begin(); it != headers_.end(); it++) {
             response_raw += it->first + ": " + it->second + "\r\n";
         }

@@ -12,9 +12,7 @@ namespace yunying {
     }
 
     Connection::~Connection() {
-        if (fd_ != -1) {
-            close(fd_);
-        }
+        close(fd_);
     }
 
     void Connection::recv() {
@@ -22,12 +20,18 @@ namespace yunying {
         char buf[4096];
         if (recv_done_) {
             recv_done_ = false;
-            received_raw_ = "";
+            received_raw_ = received_buffer_;
+            received_buffer_ = "";
         }
         int n = read(fd_, buf, 4096);
         if (n <= 0) {
+            if (n < 0) {
+                perror("recv error");
+                Metrics::getInstance().count("recv_error_count", 1);
+            }
             recv_done_ = true;
             fd_closed_ = true;
+            Metrics::getInstance().count("recv_done_count", 1);
             return;
         }
         received_raw_ += std::string(buf, n);
@@ -45,8 +49,13 @@ namespace yunying {
                 content_length_str = content_length_str.substr(0, content_length_str.find("\r\n")); 
                 content_length = std::stoi(content_length_str);
             }
-            if (received_raw_.size() >= header.size() + 4 + content_length) {
+            int request_size = header.size() + 4 + content_length;
+            if (received_raw_.size() >= request_size) {
                 recv_done_ = true;
+            }
+            if (received_raw_.size() > request_size) {
+                received_buffer_ = received_raw_.substr(request_size);
+                received_raw_ = received_raw_.substr(0, request_size);
             }
         }
         auto end_time = std::chrono::system_clock::now();
@@ -61,9 +70,9 @@ namespace yunying {
             send_offset_ = 0;
         }
         int n = ::send(fd_, send_raw_.c_str() + send_offset_, send_raw_.size() - send_offset_, MSG_NOSIGNAL);
-        if (n <= 0) {
-            send_done_ = true;
+        if (n < 0) {
             fd_closed_ = true;
+            Metrics::getInstance().count("send_error_count", 1);
             return;
         }
         send_offset_ += n;

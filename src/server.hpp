@@ -32,6 +32,7 @@ namespace yunying {
         std::vector<int> epoll_fds_;
         std::thread listen_thread_;
         std::vector<std::thread> request_threads_;
+        HttpResponse bad_request_response_;
         int startListen();
         int startEpoll();
         int handleListen();

@@ -2,6 +2,7 @@
 #define YY_HTTP
 
 #include "metrics.hpp"
+#include "util.hpp"
 
 #include <algorithm>
 #include <chrono>
@@ -149,6 +150,7 @@ namespace yunying {
         HttpVersion http_version_;
         HttpStatus status_;
         std::string body_;
+        bool failed_;
     public:
         HttpResponse();
         HttpResponse(std::string response_raw);
@@ -164,6 +166,7 @@ namespace yunying {
         HttpVersion get_http_version() { return http_version_; }
         HttpStatus get_status() { return status_; }
         std::string get_body() { return body_; }
+        bool failed() { return failed_; }
         void set_header(const std::string key, const std::string value);
         void set_status(HttpStatus status);
         void set_body(const std::string body);

@@ -2,8 +2,8 @@
 
 namespace yunying {
 
-    StaticFileOrigin::StaticFileOrigin(std::string root_dir) {
-        root_dir_ = root_dir;
+    StaticFileOrigin::StaticFileOrigin() {
+        root_dir_ = Conf::getInstance().get_root_dir();
     }
 
     StaticFileOrigin::~StaticFileOrigin() {
@@ -55,17 +55,6 @@ namespace yunying {
 
     std::string UpstreamOrigin::getKey(HttpRequest request) {
         return request.get_host() + MethodString[request.get_method()] + request.get_path();
-    }
-
-    std::vector<std::string> split(const std::string str, const std::string delimiter) {
-        std::vector<std::string> result;
-        std::string s = str;
-        while (s.find(delimiter) != std::string::npos) {
-            result.push_back(s.substr(0, s.find(delimiter)));
-            s = s.substr(s.find(delimiter) + delimiter.length());
-        }
-        result.push_back(s);
-        return result;
     }
 
     HttpResponse* UpstreamOrigin::get(HttpRequest request, int* max_age) {

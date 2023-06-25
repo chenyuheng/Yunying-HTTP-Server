@@ -5,7 +5,6 @@ The development of Yunying is in progress. Current progress could be found in [i
 
 ## Build and Run
 ```bash
-cd src
 make
 ./yunying [port_num] # port_num could be omitted, default to 8080
 ```
@@ -13,28 +12,30 @@ make
 ## Performance Benchmarks
 Run benchmarks with [wrk](https://github.com/wg/wrk) in a cloud server with 2 CPU cores and 2 GB memory.
 
-### Hardcoded HTTP response
-The server will always responses with content `Hello, world!\n`.
+### Reverse Proxy for cpc.people.com.cn
+Run wrk for two URLs, one is a `404` page which is short and the other is the index page of cpc.people.com.cn which is relatively long. The results are as follows:
+
 ```bash
-$ wrk -t4 -c1000 -d60s http://localhost:8080
-Running 1m test @ http://localhost:8080
+$ wrk -t4 -c1000 -d60s http://localhost:8080/404
+Running 1m test @ http://localhost:8080/404
   4 threads and 1000 connections
   Thread Stats   Avg      Stdev     Max   +/- Stdev
-    Latency    27.87ms   17.65ms   1.78s    92.81%
-    Req/Sec     7.94k     2.33k   14.71k    62.27%
-  1894353 requests in 1.00m, 95.75MB read
-  Socket errors: connect 0, read 0, write 0, timeout 30
-Requests/sec:  31553.27
-Transfer/sec:      1.59MB
+    Latency    45.79ms   24.46ms   1.72s    94.17%
+    Req/Sec     4.72k     1.57k   10.55k    69.03%
+  1124283 requests in 1.00m, 531.81MB read
+  Socket errors: connect 0, read 0, write 0, timeout 36
+  Non-2xx or 3xx responses: 1124283
+Requests/sec:  18720.11
+Transfer/sec:      8.86MB
 
-$ wrk -t4 -c10000 -d60s http://localhost:8080
-Running 1m test @ http://localhost:8080
-  4 threads and 10000 connections
+$ wrk -t4 -c1000 -d60s http://localhost:8080/
+Running 1m test @ http://localhost:8080/
+  4 threads and 1000 connections
   Thread Stats   Avg      Stdev     Max   +/- Stdev
-    Latency   335.46ms  118.71ms   1.88s    90.70%
-    Req/Sec     5.80k     3.15k   13.63k    65.80%
-  416071 requests in 1.02m, 21.03MB read
-  Socket errors: connect 0, read 0, write 0, timeout 31224
-Requests/sec:   6778.54
-Transfer/sec:    350.84KB
+    Latency   131.15ms   71.15ms   1.97s    94.04%
+    Req/Sec     1.71k   366.10     2.69k    68.12%
+  408814 requests in 1.00m, 50.55GB read
+  Socket errors: connect 0, read 0, write 0, timeout 196
+Requests/sec:   6806.24
+Transfer/sec:    861.82MB
 ```
