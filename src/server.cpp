@@ -2,13 +2,12 @@
 
 namespace yunying {
     Server::Server() {
-        origin_ = new UpstreamOrigin();
         if (Conf::getInstance().get_origin_type() == OriginType::StaticFile) {
             origin_ = new StaticFileOrigin();
         } else if (Conf::getInstance().get_origin_type() == OriginType::Upstream) {
             origin_ = new UpstreamOrigin();
         }
-        cache_ = new Cache(origin_, Conf::getInstance().get_cache_size_bytes());
+        cache_ = new Cache(origin_);
         port_ = Conf::getInstance().get_port();
         bad_request_response_.set_status(HttpStatus::BAD_REQUEST);
     }

@@ -150,6 +150,7 @@ namespace yunying {
         HttpVersion http_version_;
         HttpStatus status_;
         std::string body_;
+        size_t size_;
         bool failed_;
     public:
         HttpResponse();
@@ -166,6 +167,7 @@ namespace yunying {
         HttpVersion get_http_version() { return http_version_; }
         HttpStatus get_status() { return status_; }
         std::string get_body() { return body_; }
+        size_t get_size() { return size_; }
         bool failed() { return failed_; }
         void set_header(const std::string key, const std::string value);
         void set_status(HttpStatus status);

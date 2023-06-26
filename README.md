@@ -20,22 +20,21 @@ $ wrk -t4 -c1000 -d60s http://localhost:8080/404
 Running 1m test @ http://localhost:8080/404
   4 threads and 1000 connections
   Thread Stats   Avg      Stdev     Max   +/- Stdev
-    Latency    45.79ms   24.46ms   1.72s    94.17%
-    Req/Sec     4.72k     1.57k   10.55k    69.03%
-  1124283 requests in 1.00m, 531.81MB read
-  Socket errors: connect 0, read 0, write 0, timeout 36
-  Non-2xx or 3xx responses: 1124283
-Requests/sec:  18720.11
-Transfer/sec:      8.86MB
+    Latency    54.58ms   15.86ms 505.11ms   81.83%
+    Req/Sec     4.65k   518.55     5.96k    80.19%
+  1106863 requests in 1.00m, 517.24MB read
+  Non-2xx or 3xx responses: 1106863
+Requests/sec:  18418.82
+Transfer/sec:      8.61MB
 
 $ wrk -t4 -c1000 -d60s http://localhost:8080/
 Running 1m test @ http://localhost:8080/
   4 threads and 1000 connections
   Thread Stats   Avg      Stdev     Max   +/- Stdev
-    Latency   131.15ms   71.15ms   1.97s    94.04%
-    Req/Sec     1.71k   366.10     2.69k    68.12%
-  408814 requests in 1.00m, 50.55GB read
-  Socket errors: connect 0, read 0, write 0, timeout 196
-Requests/sec:   6806.24
-Transfer/sec:    861.82MB
+    Latency   134.56ms   50.01ms   1.93s    90.02%
+    Req/Sec     1.75k   367.33     3.57k    69.29%
+  417178 requests in 1.00m, 51.66GB read
+  Socket errors: connect 0, read 0, write 0, timeout 30
+Requests/sec:   6944.50
+Transfer/sec:      0.86GB
 ```

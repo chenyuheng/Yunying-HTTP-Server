@@ -127,6 +127,7 @@ namespace yunying {
 
     HttpResponse::HttpResponse(std::string response_raw) {
         auto start_time = std::chrono::system_clock::now();
+        size_ = response_raw.size();
         size_t CRLF_pos = response_raw.find("\r\n\r\n");
         if (CRLF_pos == std::string::npos) {
             failed_ = true;
@@ -196,8 +197,9 @@ namespace yunying {
     }
 
     void HttpResponse::set_body(const std::string body) {
-        printf("body: %s\n", body.c_str());
+        size_ -= body_.size();
         body_ = body;
+        size_ += body_.size();
     }
 
     std::string HttpResponse::to_string() {

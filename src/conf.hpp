@@ -1,8 +1,11 @@
 #ifndef YY_CONF
 #define YY_CONF
 
+#include "conf.hpp"
+
 #include <cstdint>
 #include <string>
+#include <unordered_map>
 
 namespace yunying {
     enum class OriginType {
@@ -18,16 +21,18 @@ namespace yunying {
         void operator=(Conf const&); // prevent assignments
 
         // hardcoded for now
-        int cache_size_bytes_ = 1 << 25;
         uint16_t port_ = 8080;
         uint16_t working_threads_num_ = 5;
+        
+        // cache
+        int cache_size_bytes_ = 1 << 25;
         int default_max_age_ = 300;
+        int cache_clean_interval_ = 10;
 
+        // origin
         OriginType origin_type_ = OriginType::Upstream;
-
         // used for static file origin only
         std::string root_dir_ = "/tmp";
-
         // used for upstream origin only
         std::string upstream_host_ = "cpc.people.com.cn";
         std::string upstream_ip_ = "157.185.156.194";
@@ -48,6 +53,7 @@ namespace yunying {
         std::string get_upstream_host() { return upstream_host_; }
         std::string get_upstream_ip() { return upstream_ip_; }
         uint16_t get_upstream_port() { return upstream_port_; }
+        int get_cache_clean_interval() { return cache_clean_interval_; }
 
         void set_port(uint16_t port) { port_ = port; }
         void set_root_dir(std::string root_dir) { root_dir_ = root_dir; }

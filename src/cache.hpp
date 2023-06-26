@@ -2,7 +2,9 @@
 #define YY_CACHE
 
 #include <queue>
+#include <set>
 #include <string>
+#include <thread>
 #include <unordered_map>
 
 #include "http.hpp"
@@ -18,14 +20,15 @@ namespace yunying {
     class Cache {
     public:
         Cache() = delete;
-        Cache(Origin* origin, int max_size_bytes);
+        Cache(Origin* origin);
         ~Cache();
 
         HttpResponse* get(const HttpRequest request);
     
     private:
-        int max_size_bytes_;
-        int size_bytes_;
+        size_t max_size_bytes_;
+        size_t size_bytes_;
+        int clean_interval_;
         Origin* origin_;
         std::unordered_map<std::string, HttpResponse*> cache_;
         std::unordered_map<HttpResponse*, std::string> reverse_cache_;
@@ -33,8 +36,14 @@ namespace yunying {
             std::pair<int, HttpResponse*>,
             std::vector<std::pair<int, HttpResponse*>>,
             ExpiresCompare> expires_;
+        std::vector<HttpResponse*> to_delete_;
+        std::thread* clean_thread_;
+        std::set<std::string> origining_keys_;
+        std::mutex read_mutex_;
+        std::mutex origining_mutex_;
 
-        void clean();
+        void cleanThread();
+        HttpResponse* safeCacheGet(std::string key);
     };
 } // namespace yunying
 
