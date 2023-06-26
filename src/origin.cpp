@@ -17,6 +17,12 @@ namespace yunying {
         return path;
     }
 
+    bool isDirectory(std::string path) {
+        struct stat path_stat;
+        stat(path.c_str(), &path_stat);
+        return S_ISDIR(path_stat.st_mode);
+    }
+
     std::string StaticFileOrigin::getKey(HttpRequest request) {
         return MethodString[request.get_method()] + handleDefault(request.get_path());
     }
@@ -28,7 +34,10 @@ namespace yunying {
             response->set_status(HttpStatus::METHOD_NOT_ALLOWED);
             return response;
         }
-        std::string path = root_dir_ + handleDefault(request.get_path());
+        std::string path = root_dir_ + handleDefault(request.get_path()) + "/";
+        if (isDirectory(path)) {
+            path = handleDefault(path);
+        }
         FILE* file = fopen(path.c_str(), "rb");
         if (file == NULL) {
             response->set_status(HttpStatus::NOT_FOUND);

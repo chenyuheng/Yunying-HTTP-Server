@@ -30,9 +30,9 @@ namespace yunying {
         int cache_clean_interval_ = 10;
 
         // origin
-        OriginType origin_type_ = OriginType::Upstream;
+        OriginType origin_type_ = OriginType::StaticFile;
         // used for static file origin only
-        std::string root_dir_ = "/tmp";
+        std::string root_dir_ = ".";
         // used for upstream origin only
         std::string upstream_host_ = "cpc.people.com.cn";
         std::string upstream_ip_ = "157.185.156.194";

@@ -1,5 +1,5 @@
 # Yunying HTTP Server
-Yunying(云影) is a simple HTTP server that supports static file serving, reverse proxy and cache. It is written in C++ and uses [epoll](https://man7.org/linux/man-pages/man7/epoll.7.html) to handle network events.
+Yunying(云影) is a simple HTTP server that supports static file serving, reverse proxy and in-memory cache. It is written in C++ and uses [epoll](https://man7.org/linux/man-pages/man7/epoll.7.html) to handle network events.
 
 The development of Yunying is in progress. Current progress could be found in [issue #1](https://github.com/chenyuheng/Yunying-HTTP-Server/issues/1).
 
