@@ -5,15 +5,9 @@
 
 int main(int argc, char *argv[]) {
     if (argc > 1) {
-        uint16_t port = atoi(argv[1]);
-        if (port != 0) {
-            yunying::Conf::getInstance().set_port(port);
-        }
+        yunying::Conf::getInstance().set_lua_config_path(argv[1]);
     }
-    if (argc > 2) {
-        std::string root_dir = argv[2];
-        yunying::Conf::getInstance().set_root_dir(root_dir);
-    }
+    yunying::Conf::getInstance().parseLua();
     yunying::Server server = yunying::Server();
     server.start();
     printf("Server started\n");

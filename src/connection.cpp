@@ -38,18 +38,18 @@ namespace yunying {
         if (received_raw_.find("\r\n\r\n") != std::string::npos) {
             std::string header = received_raw_.substr(0, received_raw_.find("\r\n\r\n"));
             // convert header to uppercase
-            for (int i = 0; i < header.size(); i++) {
+            for (int i = 0; i < (int)header.size(); i++) {
                 if (header[i] >= 'a' && header[i] <= 'z') {
                     header[i] -= 32;
                 }
             }
-            int content_length = 0;
+            size_t content_length = 0;
             if (header.find("CONTENT-LENGTH:") != std::string::npos) {
                 std::string content_length_str = header.substr(header.find("CONTENT-LENGTH:") + 15);
                 content_length_str = content_length_str.substr(0, content_length_str.find("\r\n")); 
                 content_length = std::stoi(content_length_str);
             }
-            int request_size = header.size() + 4 + content_length;
+            size_t request_size = header.size() + 4 + content_length;
             if (received_raw_.size() >= request_size) {
                 recv_done_ = true;
             }

@@ -1,9 +1,8 @@
 #ifndef YY_CONF
 #define YY_CONF
 
-#include "conf.hpp"
-
 #include <cstdint>
+#include <sol/sol.hpp>
 #include <string>
 #include <unordered_map>
 
@@ -16,9 +15,13 @@ namespace yunying {
     class Conf
     {
     private:
-        Conf() {} // private constructor
+        Conf() {}; // private constructor
         Conf(Conf const&); // prevent copies
         void operator=(Conf const&); // prevent assignments
+
+        std::string lua_config_path_ = "config.lua";
+        sol::state lua_;
+        template <class T> T luaGet(std::string key, T default_val);
 
         // hardcoded for now
         uint16_t port_ = 8080;
@@ -26,7 +29,7 @@ namespace yunying {
         
         // cache
         int cache_size_bytes_ = 1 << 25;
-        int default_max_age_ = 300;
+        int cache_default_max_age_ = 300;
         int cache_clean_interval_ = 10;
 
         // origin
@@ -43,20 +46,19 @@ namespace yunying {
             static Conf instance;
             return instance;
         }
+        void parseLua();
+        void set_lua_config_path(std::string path) { lua_config_path_ = path; }
 
         int get_cache_size_bytes() { return cache_size_bytes_; }
         uint16_t get_port() { return port_; }
         uint16_t get_working_threads_num() { return working_threads_num_; }
         OriginType get_origin_type() { return origin_type_; }
         std::string get_root_dir() { return root_dir_; }
-        int get_default_max_age() { return default_max_age_; }
+        int get_cache_default_max_age() { return cache_default_max_age_; }
         std::string get_upstream_host() { return upstream_host_; }
         std::string get_upstream_ip() { return upstream_ip_; }
         uint16_t get_upstream_port() { return upstream_port_; }
         int get_cache_clean_interval() { return cache_clean_interval_; }
-
-        void set_port(uint16_t port) { port_ = port; }
-        void set_root_dir(std::string root_dir) { root_dir_ = root_dir; }
 
     };
 } // namespace yunying

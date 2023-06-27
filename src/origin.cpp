@@ -29,7 +29,7 @@ namespace yunying {
 
     HttpResponse* StaticFileOrigin::get(HttpRequest request, int* max_age) {
         HttpResponse* response = new HttpResponse();
-        *max_age = Conf::getInstance().get_default_max_age();
+        *max_age = Conf::getInstance().get_cache_default_max_age();
         if (request.get_method() != HttpMethod::GET) {
             response->set_status(HttpStatus::METHOD_NOT_ALLOWED);
             return response;
@@ -43,10 +43,15 @@ namespace yunying {
             response->set_status(HttpStatus::NOT_FOUND);
         } else {
             fseek(file, 0, SEEK_END);
-            int file_size = ftell(file);
+            size_t file_size = ftell(file);
             fseek(file, 0, SEEK_SET);
             char* file_content = (char*)malloc(file_size);
-            fread(file_content, 1, file_size, file);
+            int ret = fread(file_content, 1, file_size, file);
+            if (ret < 0) {
+                perror("fread");
+                response->set_status(HttpStatus::INTERNAL_SERVER_ERROR);
+                return response;
+            }
             fclose(file);
             response->set_body(std::string(file_content, file_size));
             free(file_content);
@@ -93,7 +98,7 @@ namespace yunying {
         HttpResponse* upstream_response = new HttpResponse(upstream_connection.getReceivedRaw());
         if (upstream_response->get_header("Cache-Control") != "") {
             std::vector<std::string> cache_controls = split(upstream_response->get_header("Cache-Control"), ",");
-            for (int i = 0; i < cache_controls.size(); i++) {
+            for (int i = 0; i < (int)cache_controls.size(); i++) {
                 std::vector<std::string> cache_control = split(cache_controls[i], "=");
                 if (cache_control[0] == "max-age") {
                     *max_age = std::stoi(cache_control[1]);
@@ -101,8 +106,8 @@ namespace yunying {
                 }
             }
         }
-        if (*max_age < Conf::getInstance().get_default_max_age()) {
-            *max_age = Conf::getInstance().get_default_max_age();
+        if (*max_age < Conf::getInstance().get_cache_default_max_age()) {
+            *max_age = Conf::getInstance().get_cache_default_max_age();
         }
         Metrics::getInstance().count("upstream_count", 1);
         return upstream_response;

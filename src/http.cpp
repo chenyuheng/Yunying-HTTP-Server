@@ -29,7 +29,7 @@ namespace yunying {
         // split header to lines
         std::vector<std::string> header_lines;
         std::string header_line = "";
-        for (int i = 0; i < header_raw.size(); i++) {
+        for (int i = 0; i < (int)header_raw.size(); i++) {
             if (header_raw[i] == '\r' && header_raw[i + 1] == '\n') {
                 trim(header_line);
                 header_lines.push_back(header_line);
@@ -65,7 +65,7 @@ namespace yunying {
         }
 
         // parse headers
-        for (int i = 1; i < header_lines.size(); i++) {
+        for (int i = 1; i < (int)header_lines.size(); i++) {
             std::vector<std::string> header_line = split(header_lines[i], ":", 2);
             std::string key = header_line[0];
             for (auto & c: key) c = toupper(c);
@@ -139,7 +139,7 @@ namespace yunying {
         // split header to lines
         std::vector<std::string> header_lines;
         std::string header_line = "";
-        for (int i = 0; i < header_raw.size(); i++) {
+        for (int i = 0; i < (int)header_raw.size(); i++) {
             if (header_raw[i] == '\r' && header_raw[i + 1] == '\n') {
                 header_lines.push_back(header_line);
                 header_line = "";
@@ -170,7 +170,7 @@ namespace yunying {
         } else {
             status_ = (HttpStatus)status_code;
         }
-        for (int i = 1; i < header_lines.size(); i++) {
+        for (int i = 1; i < (int)header_lines.size(); i++) {
             std::string key = header_lines[i].substr(0, header_lines[i].find(":"));
             for (auto & c: key) c = toupper(c);
             if (key == "TRANSFER-ENCODING") continue;
