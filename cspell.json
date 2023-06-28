@@ -7,6 +7,8 @@
     // words - list of words to be always considered correct
     "words": [
         "epoll",
+        "EPOLLIN",
+        "EPOLLOUT",
         "Stdev",
         "yunying"
     ],
@@ -17,6 +19,9 @@
         "hte"
     ],
     "ignorePaths": [
-        "external/**"
+        "external/**",
+        "CMakeList.txt",
+        "cspell.json",
+        "LICENSE"
     ]
 }
