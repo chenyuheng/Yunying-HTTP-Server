@@ -22,8 +22,8 @@ Config for the in-memory cache, by default you don't need to change it.
 | Name | Type | Default | Description |
 | ---- | ---- | ------- | ----------- |
 | cache_size_bytes | int64 | 1<<25 (2^25) | The size of the cache in bytes |
-| cache_default_max_age | int64 | 300 | The default max age of the cache in seconds |
-| cache_clean_interval | int64 | 10 | The interval of the cache clean in seconds |
+| cache_default_max_age | int | 300 | The default max age of the cache in seconds |
+| cache_clean_interval | int | 10 | The interval of the cache clean in seconds |
 
 ### Origin config
 Origin is the source of the content, it can be a static file server or an upstream server.

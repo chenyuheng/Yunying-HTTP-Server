@@ -13,9 +13,8 @@ TEST(ConfTest, FailLoading) {
   EXPECT_EQ(yunying::OriginType::StaticFile,
             yunying::Conf::getInstance().get_origin_type());
   EXPECT_EQ(".", yunying::Conf::getInstance().get_root_dir());
-  EXPECT_EQ("cpc.people.com.cn",
-            yunying::Conf::getInstance().get_upstream_host());
-  EXPECT_EQ("157.185.156.194", yunying::Conf::getInstance().get_upstream_ip());
+  EXPECT_EQ("upstream.host", yunying::Conf::getInstance().get_upstream_host());
+  EXPECT_EQ("185.199.110.153", yunying::Conf::getInstance().get_upstream_ip());
   EXPECT_EQ(80, yunying::Conf::getInstance().get_upstream_port());
 
   // load test_fail.lua and test values, should not change
@@ -30,9 +29,8 @@ TEST(ConfTest, FailLoading) {
   EXPECT_EQ(yunying::OriginType::StaticFile,
             yunying::Conf::getInstance().get_origin_type());
   EXPECT_EQ(".", yunying::Conf::getInstance().get_root_dir());
-  EXPECT_EQ("cpc.people.com.cn",
-            yunying::Conf::getInstance().get_upstream_host());
-  EXPECT_EQ("157.185.156.194", yunying::Conf::getInstance().get_upstream_ip());
+  EXPECT_EQ("upstream.host", yunying::Conf::getInstance().get_upstream_host());
+  EXPECT_EQ("185.199.110.153", yunying::Conf::getInstance().get_upstream_ip());
   EXPECT_EQ(80, yunying::Conf::getInstance().get_upstream_port());
 }
 
@@ -46,9 +44,8 @@ TEST(ConfTest, SuccessfulLoading) {
   EXPECT_EQ(yunying::OriginType::StaticFile,
             yunying::Conf::getInstance().get_origin_type());
   EXPECT_EQ(".", yunying::Conf::getInstance().get_root_dir());
-  EXPECT_EQ("cpc.people.com.cn",
-            yunying::Conf::getInstance().get_upstream_host());
-  EXPECT_EQ("157.185.156.194", yunying::Conf::getInstance().get_upstream_ip());
+  EXPECT_EQ("upstream.host", yunying::Conf::getInstance().get_upstream_host());
+  EXPECT_EQ("185.199.110.153", yunying::Conf::getInstance().get_upstream_ip());
   EXPECT_EQ(80, yunying::Conf::getInstance().get_upstream_port());
 
   // load test_success.lua and test values
