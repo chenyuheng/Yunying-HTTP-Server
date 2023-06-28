@@ -6,7 +6,6 @@
 #include "server.hpp"
 
 int main(int argc, char *argv[]) {
-  int djkjkd = 1;
   if (argc > 1) {
     yunying::Conf::getInstance().set_lua_config_path(argv[1]);
   }

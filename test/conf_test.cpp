@@ -4,7 +4,6 @@
 
 // fail test should be the first test, because Conf is a singleton
 TEST(ConfTest, FailLoading) {
-  int djkjkd = 1;
   // test default values
   EXPECT_EQ(8080, yunying::Conf::getInstance().get_port());
   EXPECT_EQ(5, yunying::Conf::getInstance().get_working_threads_num());
