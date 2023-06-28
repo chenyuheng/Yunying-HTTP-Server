@@ -2,22 +2,44 @@ cmake_minimum_required(VERSION 3.12)
 project(Yunying)
 
 set(CMAKE_CXX_STANDARD 20)
-
-# Set compiler flags
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -g -O2 -lpthread")
 
-# Include directories
 include_directories(
     src/third_party/sol
     /usr/local/include
     /usr/local/bin
 )
 
-# Source files
 file(GLOB SOURCES src/*.cpp)
+list(FILTER SOURCES EXCLUDE REGEX "main.cpp$")
+file(GLOB TEST_SOURCES test/*.cpp)
 
-# Executable target
-add_executable(yunying ${SOURCES})
+add_library(libYunying STATIC ${SOURCES})
+target_include_directories(libYunying PUBLIC src)
+add_executable(yunying src/main.cpp)
 
-# Link libraries
-target_link_libraries(yunying lua)
+target_link_libraries(yunying libYunying lua)
+
+include(FetchContent)
+FetchContent_Declare(
+  googletest
+  URL https://github.com/google/googletest/archive/b796f7d44681514f58a683a3a71ff17c94edb0c1.zip
+)
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(googletest)
+
+enable_testing()
+
+add_executable(
+  yunying_test
+  ${TEST_SOURCES}
+)
+target_link_libraries(
+  yunying_test
+  libYunying
+  GTest::gtest_main
+  lua
+)
+
+include(GoogleTest)
+gtest_discover_tests(yunying_test)

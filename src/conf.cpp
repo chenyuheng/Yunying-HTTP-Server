@@ -13,16 +13,16 @@ namespace yunying {
         std::string origin_type_str = luaGet<std::string>("origin_type", "static_file");
         if (origin_type_str == "static_file") {
             origin_type_ = OriginType::StaticFile;
-            root_dir_ = luaGet<std::string>("root_dir", root_dir_);
         } else if (origin_type_str == "upstream") {
             origin_type_ = OriginType::Upstream;
-            upstream_host_ = luaGet<std::string>("upstream_host", upstream_host_);
-            upstream_ip_ = luaGet<std::string>("upstream_ip", upstream_ip_);
-            upstream_port_ = luaGet<uint16_t>("upstream_port", upstream_port_);
         } else {
             printf("Unknown origin type: %s\n", origin_type_str.c_str());
             exit(1);
         }
+        root_dir_ = luaGet<std::string>("root_dir", root_dir_);
+        upstream_host_ = luaGet<std::string>("upstream_host", upstream_host_);
+        upstream_ip_ = luaGet<std::string>("upstream_ip", upstream_ip_);
+        upstream_port_ = luaGet<uint16_t>("upstream_port", upstream_port_);
         printf("Finished loading config\n\n");
     }
 
