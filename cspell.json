@@ -20,7 +20,7 @@
     ],
     "ignorePaths": [
         "external/**",
-        "CMakeList.txt",
+        "CMakeLists.txt",
         "cspell.json",
         "LICENSE"
     ]
