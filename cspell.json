@@ -22,6 +22,7 @@
         "external/**",
         "CMakeLists.txt",
         "cspell.json",
-        "LICENSE"
+        "LICENSE",
+        "config.lua"
     ]
 }

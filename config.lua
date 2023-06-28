@@ -3,7 +3,7 @@ port = 8080
 working_thread_num = 4
 
 -- cache config
-cache_size_bytes = 1024 * 1024 * 1024
+cache_size_bytes = 1 << 25
 cache_default_max_age = 300
 cache_clean_interval = 10
 
@@ -14,7 +14,7 @@ upstream_host = "upstream.host"     -- upstream only
 upstream_ip = "185.199.110.153"     -- upstream only
 upstream_port = 80                  -- upstream only
 
--- upstream custome config
+-- upstream customized config
 function upstream_set(req_path, req_method, req_host)
     if (req_path:find("^/chenyuheng") ~= nil) then
         set_host("chenyuheng.github.io")

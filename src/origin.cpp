@@ -106,13 +106,12 @@ HttpResponse* UpstreamOrigin::get(HttpRequest request, int* max_age) {
       "set_upstream_port",
       [&upstream_port](int port) { upstream_port = port; });
 
-
   sol::function upstream_set = Conf::getInstance().get_lua()["upstream_set"];
   if (upstream_set.valid()) {
-    std::function<void(std::string, std::string, std::string)> stdfx =
-        upstream_set;
-    stdfx(request.get_path(), MethodString[request.get_method()],
-          request.get_host());
+    std::function<void(std::string, std::string, std::string)>
+        upstream_set_func = upstream_set;
+    upstream_set_func(request.get_path(), MethodString[request.get_method()],
+                      request.get_host());
   }
 
   int upstream_fd = socket(AF_INET, SOCK_STREAM, 0);

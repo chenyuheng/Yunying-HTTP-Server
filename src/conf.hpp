@@ -34,8 +34,8 @@ class Conf {
   // used for static file origin only
   std::string root_dir_ = ".";
   // used for upstream origin only
-  std::string upstream_host_ = "cpc.people.com.cn";
-  std::string upstream_ip_ = "157.185.156.194";
+  std::string upstream_host_ = "upstream.host";
+  std::string upstream_ip_ = "185.199.110.153";
   uint16_t upstream_port_ = 80;
 
  public:

@@ -2,7 +2,11 @@
 
 namespace yunying {
 void Conf::parseLua() {
-  lua_.open_libraries(sol::lib::base, sol::lib::string);
+  lua_.open_libraries(sol::lib::base, sol::lib::string, sol::lib::table,
+                      sol::lib::math,
+                      // package and os modules could result vulnerability
+                      // avoid using them if config file is not trusted
+                      sol::lib::package, sol::lib::os);
   printf("Loading config %s\n", lua_config_path_.c_str());
   lua_.script_file(lua_config_path_);
   port_ = luaGet<uint16_t>("port", port_);
