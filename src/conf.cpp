@@ -2,7 +2,7 @@
 
 namespace yunying {
 void Conf::parseLua() {
-  lua_.open_libraries(sol::lib::base);
+  lua_.open_libraries(sol::lib::base, sol::lib::string);
   printf("Loading config %s\n", lua_config_path_.c_str());
   lua_.script_file(lua_config_path_);
   port_ = luaGet<uint16_t>("port", port_);

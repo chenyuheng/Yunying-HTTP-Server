@@ -77,9 +77,44 @@ HttpResponse* UpstreamOrigin::get(HttpRequest request, int* max_age) {
   upstream_request.set_path(request.get_path());
   upstream_request.set_host(Conf::getInstance().get_upstream_host());
   upstream_request.set_body(request.get_body());
-
   std::string upstream_ip = Conf::getInstance().get_upstream_ip();
   int upstream_port = Conf::getInstance().get_upstream_port();
+
+  Conf::getInstance().get_lua().set_function(
+      "set_method", [&upstream_request](std::string method_str) {
+        if (MethodDict.find(method_str) == MethodDict.end()) {
+          upstream_request.set_method(MethodDict[method_str]);
+        } else {
+          upstream_request.set_method(HttpMethod::OTHER);
+        }
+      });
+  Conf::getInstance().get_lua().set_function(
+      "set_path", [&upstream_request](std::string path) {
+        upstream_request.set_path(path);
+      });
+  Conf::getInstance().get_lua().set_function(
+      "set_host", [&upstream_request](std::string host) {
+        upstream_request.set_host(host);
+      });
+  Conf::getInstance().get_lua().set_function(
+      "set_body", [&upstream_request](std::string body) {
+        upstream_request.set_body(body);
+      });
+  Conf::getInstance().get_lua().set_function(
+      "set_upstream_ip", [&upstream_ip](std::string ip) { upstream_ip = ip; });
+  Conf::getInstance().get_lua().set_function(
+      "set_upstream_port",
+      [&upstream_port](int port) { upstream_port = port; });
+
+
+  sol::function upstream_set = Conf::getInstance().get_lua()["upstream_set"];
+  if (upstream_set.valid()) {
+    std::function<void(std::string, std::string, std::string)> stdfx =
+        upstream_set;
+    stdfx(request.get_path(), MethodString[request.get_method()],
+          request.get_host());
+  }
+
   int upstream_fd = socket(AF_INET, SOCK_STREAM, 0);
   struct sockaddr_in upstream_addr;
   upstream_addr.sin_family = AF_INET;

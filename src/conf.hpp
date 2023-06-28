@@ -45,6 +45,7 @@ class Conf {
   }
   void parseLua();
   void set_lua_config_path(std::string path) { lua_config_path_ = path; }
+  sol::state& get_lua() { return lua_; }
 
   int get_cache_size_bytes() { return cache_size_bytes_; }
   uint16_t get_port() { return port_; }
