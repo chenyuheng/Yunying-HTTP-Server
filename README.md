@@ -6,16 +6,19 @@ Yunying can now serve static files and reverse proxy for other HTTP servers. It 
 The development of Yunying is in progress. You may track the progress in the [issue list](https://github.com/chenyuheng/Yunying-HTTP-Server/issues/).
 
 ## Build and Run
-You need a Linux machine to build and run Yunying.
+You need a Linux machine and CMake to build and run Yunying.
 
-Before building Yunying, you will need to build and install Lua first. You can follow the instructions in [Lua's official website](https://www.lua.org/manual/5.4/readme.html) to build and install Lua. After that, you can build Yunying using `make`:
+Before building Yunying, you will need to build and install Lua first. You can follow the instructions in [Lua's official website](https://www.lua.org/manual/5.4/readme.html) to build and install Lua. After that, you can build Yunying using `cmake`:
 ```bash
+mkdir build
+cd build
+cmake ..
 make
 ```
 
 After build, you will get `yunying` executable file. After editing the config file, you can run it directly:
 ```bash
-./yunying [config_file] # config_file can be omitted, default to ./config.lua
+build/yunying [config_file] # config_file can be omitted, default to ./config.lua
 ```
 
 ## Performance Benchmarks
