@@ -1,0 +1,19 @@
+name: 'Check spelling'
+on: # rebuild any PRs and main branch changes
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  spellcheck: # run the action
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: streetsidesoftware/cspell-action@v2
+        with:
+          files: '**'
+          incremental_files_only: false
+          check_dot_files: false
+
+

@@ -56,5 +56,5 @@ Transfer/sec:      1.12GB
 ```
 
 ## Libraries Used
-- [Lua](https://www.lua.org/) - A powerful, efficient, lightweight, embeddable scripting language, used as the configuration language of Yunying.
+- [Lua](https://www.lua.org/) - A lightweight scripting language, used as the configuration language of Yunying.
 - [sol2](https://sol2.readthedocs.io/en/latest/) - A C++ wrapper for Lua.

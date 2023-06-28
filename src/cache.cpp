@@ -34,7 +34,7 @@ HttpResponse* Cache::get(const HttpRequest request) {
   // clean();
   std::string key = origin_->getKey(request);
   while (true) {
-    while (origining_keys_.find(key) != origining_keys_.end()) {
+    while (originating_keys_.find(key) != originating_keys_.end()) {
       // wait
       std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
@@ -42,18 +42,18 @@ HttpResponse* Cache::get(const HttpRequest request) {
     if (response != nullptr) {
       return response;
     }
-    origining_mutex_.lock();
-    if (origining_keys_.find(key) == origining_keys_.end()) {
-      origining_keys_.insert(key);
-      origining_mutex_.unlock();
+    originating_mutex_.lock();
+    if (originating_keys_.find(key) == originating_keys_.end()) {
+      originating_keys_.insert(key);
+      originating_mutex_.unlock();
       break;
     }
-    origining_mutex_.unlock();
+    originating_mutex_.unlock();
   }
   int max_age;
   HttpResponse* response = origin_->get(request, &max_age);
   if (response->get_body().size() > max_size_bytes_) {
-    origining_keys_.erase(key);
+    originating_keys_.erase(key);
     return response;
   }
   int timestamp = time(NULL);
@@ -61,7 +61,7 @@ HttpResponse* Cache::get(const HttpRequest request) {
   cache_[key] = response;
   reverse_cache_[response] = key;
   size_bytes_ += response->get_size();
-  origining_keys_.erase(key);
+  originating_keys_.erase(key);
   return response;
 }
 

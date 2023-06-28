@@ -38,9 +38,9 @@ class Cache {
       expires_;
   std::vector<HttpResponse*> to_delete_;
   std::thread* clean_thread_;
-  std::set<std::string> origining_keys_;
+  std::set<std::string> originating_keys_;
   std::mutex read_mutex_;
-  std::mutex origining_mutex_;
+  std::mutex originating_mutex_;
 
   void cleanThread();
   HttpResponse* safeCacheGet(std::string key);
