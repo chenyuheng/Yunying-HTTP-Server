@@ -12,7 +12,8 @@ jobs:
       - uses: actions/checkout@v3
       - uses: streetsidesoftware/cspell-action@v2
         with:
-          files: 'src/* test/*'
+          files: '**'
           incremental_files_only: false
+          check_dot_files: false
 
 

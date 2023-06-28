@@ -6,6 +6,8 @@
     "language": "en",
     // words - list of words to be always considered correct
     "words": [
+        "epoll",
+        "Stdev",
         "yunying"
     ],
     // flagWords - list of words to be always considered incorrect
@@ -13,5 +15,8 @@
     // For example "hte" should be "the"
     "flagWords": [
         "hte"
+    ],
+    "ignorePaths": [
+        "external/**"
     ]
 }
