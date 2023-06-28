@@ -25,7 +25,7 @@ class Conf {
   uint16_t working_threads_num_ = 5;
 
   // cache
-  int cache_size_bytes_ = 1 << 25;
+  size_t cache_size_bytes_ = 1 << 25;
   int cache_default_max_age_ = 300;
   int cache_clean_interval_ = 10;
 
@@ -34,8 +34,8 @@ class Conf {
   // used for static file origin only
   std::string root_dir_ = ".";
   // used for upstream origin only
-  std::string upstream_host_ = "cpc.people.com.cn";
-  std::string upstream_ip_ = "157.185.156.194";
+  std::string upstream_host_ = "upstream.host";
+  std::string upstream_ip_ = "185.199.110.153";
   uint16_t upstream_port_ = 80;
 
  public:
@@ -45,8 +45,9 @@ class Conf {
   }
   void parseLua();
   void set_lua_config_path(std::string path) { lua_config_path_ = path; }
+  sol::state& get_lua() { return lua_; }
 
-  int get_cache_size_bytes() { return cache_size_bytes_; }
+  size_t get_cache_size_bytes() { return cache_size_bytes_; }
   uint16_t get_port() { return port_; }
   uint16_t get_working_threads_num() { return working_threads_num_; }
   OriginType get_origin_type() { return origin_type_; }

@@ -20,7 +20,7 @@ cmake -B build
 cmake --build build
 ```
 
-After build, you will get `yunying` executable file. After editing the config file, you can run it directly:
+After build, you will get `yunying` executable file. You can refer to the [config document](docs/config.md) to edit the config file. After editing the config file, you can run it directly:
 ```bash
 build/yunying [config_file] # config_file can be omitted, default to ./config.lua
 ```
@@ -58,3 +58,4 @@ Transfer/sec:      1.12GB
 ## Libraries Used
 - [Lua](https://www.lua.org/) - A lightweight scripting language, used as the configuration language of Yunying.
 - [sol2](https://sol2.readthedocs.io/en/latest/) - A C++ wrapper for Lua.
+- [Google Test](https://google.github.io/googletest/) - A C++ testing framework.
