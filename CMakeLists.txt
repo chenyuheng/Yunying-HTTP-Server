@@ -4,11 +4,10 @@ project(Yunying)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -g -O2 -lpthread")
 
-include_directories(
-    src/third_party/sol
-    /usr/local/include
-    /usr/local/bin
-)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/external/lua)
+
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/build/external/lua/include)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/sol2/include)
 
 file(GLOB SOURCES src/*.cpp)
 list(FILTER SOURCES EXCLUDE REGEX "main.cpp$")
@@ -18,7 +17,7 @@ add_library(libYunying STATIC ${SOURCES})
 target_include_directories(libYunying PUBLIC src)
 add_executable(yunying src/main.cpp)
 
-target_link_libraries(yunying libYunying lua)
+target_link_libraries(yunying libYunying lua::lib)
 
 include(FetchContent)
 FetchContent_Declare(

@@ -8,12 +8,16 @@ The development of Yunying is in progress. You may track the progress in the [is
 ## Build and Run
 You need a Linux machine and CMake to build and run Yunying.
 
-Before building Yunying, you will need to build and install Lua first. You can follow the instructions in [Lua's official website](https://www.lua.org/manual/5.4/readme.html) to build and install Lua. After that, you can build Yunying using `cmake`:
+After cloning this repository, you should first initialize the submodules:
 ```bash
-mkdir build
-cd build
-cmake ..
-make
+git submodule update --init --recursive
+```
+
+Then you can build Yunying with CMake:
+
+```bash
+cmake -B build
+cmake --build build
 ```
 
 After build, you will get `yunying` executable file. After editing the config file, you can run it directly:
