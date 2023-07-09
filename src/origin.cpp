@@ -1,5 +1,7 @@
 #include "origin.hpp"
 
+#include <curl/curl.h>
+
 namespace yunying {
 
 StaticFileOrigin::StaticFileOrigin() {
@@ -71,81 +73,97 @@ std::string UpstreamOrigin::getKey(HttpRequest request) {
          request.get_path();
 }
 
+size_t writeCallback(char* ptr, size_t size, size_t nmemb, void* userdata) {
+    HttpResponse* response = (HttpResponse*)userdata;
+    response->set_body(std::string(ptr));
+    return size * nmemb;
+}
+
 HttpResponse* UpstreamOrigin::get(HttpRequest request, int* max_age) {
-  HttpRequest upstream_request;
-  upstream_request.set_method(request.get_method());
-  upstream_request.set_path(request.get_path());
-  upstream_request.set_host(Conf::getInstance().get_upstream_host());
-  upstream_request.set_body(request.get_body());
-  std::string upstream_ip = Conf::getInstance().get_upstream_ip();
-  int upstream_port = Conf::getInstance().get_upstream_port();
+  HttpResponse* response = new HttpResponse();
+  CURL *curl = curl_easy_init();
+  if(curl) {
+    CURLcode res;
+    curl_easy_setopt(curl, CURLOPT_URL, "https://example.com");
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeCallback);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, response);
+    res = curl_easy_perform(curl);
+    curl_easy_cleanup(curl);
+  }
+  // HttpRequest upstream_request;
+  // upstream_request.set_method(request.get_method());
+  // upstream_request.set_path(request.get_path());
+  // upstream_request.set_host(Conf::getInstance().get_upstream_host());
+  // upstream_request.set_body(request.get_body());
+  // std::string upstream_ip = Conf::getInstance().get_upstream_ip();
+  // int upstream_port = Conf::getInstance().get_upstream_port();
 
-  Conf::getInstance().get_lua().set_function(
-      "set_method", [&upstream_request](std::string method_str) {
-        if (MethodDict.find(method_str) == MethodDict.end()) {
-          upstream_request.set_method(MethodDict[method_str]);
-        } else {
-          upstream_request.set_method(HttpMethod::OTHER);
-        }
-      });
-  Conf::getInstance().get_lua().set_function(
-      "set_path", [&upstream_request](std::string path) {
-        upstream_request.set_path(path);
-      });
-  Conf::getInstance().get_lua().set_function(
-      "set_host", [&upstream_request](std::string host) {
-        upstream_request.set_host(host);
-      });
-  Conf::getInstance().get_lua().set_function(
-      "set_body", [&upstream_request](std::string body) {
-        upstream_request.set_body(body);
-      });
-  Conf::getInstance().get_lua().set_function(
-      "set_upstream_ip", [&upstream_ip](std::string ip) { upstream_ip = ip; });
-  Conf::getInstance().get_lua().set_function(
-      "set_upstream_port",
-      [&upstream_port](int port) { upstream_port = port; });
+  // Conf::getInstance().get_lua().set_function(
+  //     "set_method", [&upstream_request](std::string method_str) {
+  //       if (MethodDict.find(method_str) == MethodDict.end()) {
+  //         upstream_request.set_method(MethodDict[method_str]);
+  //       } else {
+  //         upstream_request.set_method(HttpMethod::OTHER);
+  //       }
+  //     });
+  // Conf::getInstance().get_lua().set_function(
+  //     "set_path", [&upstream_request](std::string path) {
+  //       upstream_request.set_path(path);
+  //     });
+  // Conf::getInstance().get_lua().set_function(
+  //     "set_host", [&upstream_request](std::string host) {
+  //       upstream_request.set_host(host);
+  //     });
+  // Conf::getInstance().get_lua().set_function(
+  //     "set_body", [&upstream_request](std::string body) {
+  //       upstream_request.set_body(body);
+  //     });
+  // Conf::getInstance().get_lua().set_function(
+  //     "set_upstream_ip", [&upstream_ip](std::string ip) { upstream_ip = ip; });
+  // Conf::getInstance().get_lua().set_function(
+  //     "set_upstream_port",
+  //     [&upstream_port](int port) { upstream_port = port; });
 
-  sol::function upstream_set = Conf::getInstance().get_lua()["upstream_set"];
-  if (upstream_set.valid()) {
-    std::function<void(std::string, std::string, std::string)>
-        upstream_set_func = upstream_set;
-    upstream_set_func(request.get_path(), MethodString[request.get_method()],
-                      request.get_host());
-  }
+  // sol::function upstream_set = Conf::getInstance().get_lua()["upstream_set"];
+  // if (upstream_set.valid()) {
+  //   std::function<void(std::string, std::string, std::string)>
+  //       upstream_set_func = upstream_set;
+  //   upstream_set_func(request.get_path(), MethodString[request.get_method()],
+  //                     request.get_host());
+  // }
 
-  int upstream_fd = socket(AF_INET, SOCK_STREAM, 0);
-  struct sockaddr_in upstream_addr;
-  upstream_addr.sin_family = AF_INET;
-  upstream_addr.sin_port = htons(upstream_port);
-  upstream_addr.sin_addr.s_addr = inet_addr(upstream_ip.c_str());
-  connect(upstream_fd, (struct sockaddr*)&upstream_addr, sizeof(upstream_addr));
+  // int upstream_fd = socket(AF_INET, SOCK_STREAM, 0);
+  // struct sockaddr_in upstream_addr;
+  // upstream_addr.sin_family = AF_INET;
+  // upstream_addr.sin_port = htons(upstream_port);
+  // upstream_addr.sin_addr.s_addr = inet_addr(upstream_ip.c_str());
+  // connect(upstream_fd, (struct sockaddr*)&upstream_addr, sizeof(upstream_addr));
 
-  Connection upstream_connection(upstream_fd);
-  upstream_connection.setSendRaw(upstream_request.to_string());
-  while (!upstream_connection.getSendDone()) {
-    upstream_connection.send();
-  }
-  while (!upstream_connection.getRecvDone()) {
-    upstream_connection.recv();
-  }
-  HttpResponse* upstream_response =
-      new HttpResponse(upstream_connection.getReceivedRaw());
-  if (upstream_response->get_header("Cache-Control") != "") {
-    std::vector<std::string> cache_controls =
-        split(upstream_response->get_header("Cache-Control"), ",");
-    for (int i = 0; i < (int)cache_controls.size(); i++) {
-      std::vector<std::string> cache_control = split(cache_controls[i], "=");
-      if (cache_control[0] == "max-age") {
-        *max_age = std::stoi(cache_control[1]);
-        break;
-      }
-    }
-  }
-  if (*max_age < Conf::getInstance().get_cache_default_max_age()) {
-    *max_age = Conf::getInstance().get_cache_default_max_age();
-  }
-  Metrics::getInstance().count("upstream_count", 1);
-  return upstream_response;
+  // Connection upstream_connection(upstream_fd);
+  // upstream_connection.setSendRaw(upstream_request.to_string());
+  // while (!upstream_connection.getSendDone()) {
+  //   upstream_connection.send();
+  // }
+  // while (!upstream_connection.getRecvDone()) {
+  //   upstream_connection.recv();
+  // }
+  // HttpResponse* upstream_response =
+  //     new HttpResponse(upstream_connection.getReceivedRaw());
+  // if (upstream_response->get_header("Cache-Control") != "") {
+  //   std::vector<std::string> cache_controls =
+  //       split(upstream_response->get_header("Cache-Control"), ",");
+  //   for (int i = 0; i < (int)cache_controls.size(); i++) {
+  //     std::vector<std::string> cache_control = split(cache_controls[i], "=");
+  //     if (cache_control[0] == "max-age") {
+  //       *max_age = std::stoi(cache_control[1]);
+  //       break;
+  //     }
+  //   }
+  // }
+  // if (*max_age < Conf::getInstance().get_cache_default_max_age()) {
+  //   *max_age = Conf::getInstance().get_cache_default_max_age();
+  // }
+  // Metrics::getInstance().count("upstream_count", 1);
+  return response;
 }
 }  // namespace yunying
