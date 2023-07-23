@@ -75,8 +75,7 @@ std::string UpstreamOrigin::getKey(HttpRequest request) {
 
 size_t writeCallback(char* ptr, size_t size, size_t nmemb, void* userdata) {
   HttpResponse* response = (HttpResponse*)userdata;
-  response->set_body(std::string(ptr, size * nmemb));
-  printf("callback response size: %d, %d\n", strlen(ptr), response->get_body().length());
+  response->set_body(response->get_body() + std::string(ptr, size * nmemb));
   return size * nmemb;
 }
 
