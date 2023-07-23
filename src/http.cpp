@@ -186,9 +186,7 @@ void HttpResponse::set_header(const std::string key, const std::string value) {
   headers_[key] = value;
 }
 
-void HttpResponse::delete_header(const std::string key) {
-  headers_.erase(key);
-}
+void HttpResponse::delete_header(const std::string key) { headers_.erase(key); }
 
 void HttpResponse::set_status(HttpStatus status) { status_ = status; }
 

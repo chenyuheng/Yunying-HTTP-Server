@@ -79,7 +79,8 @@ size_t writeCallback(char* ptr, size_t size, size_t nmemb, void* userdata) {
   return size * nmemb;
 }
 
-size_t header_callback(char *buffer, size_t size, size_t nitems, void *userdata) {
+size_t header_callback(char* buffer, size_t size, size_t nitems,
+                       void* userdata) {
   HttpResponse* response = (HttpResponse*)userdata;
   std::string header(buffer, nitems);
   std::vector<std::string> header_pair = split(header, ":", 2);
@@ -150,7 +151,8 @@ HttpResponse* UpstreamOrigin::get(HttpRequest request, int* max_age) {
       upstream_path;
   printf("upstream_url: %s\n", upstream_url.c_str());
   curl_easy_setopt(curl, CURLOPT_URL, upstream_url.c_str());
-  curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, MethodString[upstream_method].c_str());
+  curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST,
+                   MethodString[upstream_method].c_str());
   if (upstream_body.length() > 0) {
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, upstream_body.c_str());
   }
