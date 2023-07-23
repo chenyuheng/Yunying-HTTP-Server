@@ -82,8 +82,8 @@ size_t writeCallback(char* ptr, size_t size, size_t nmemb, void* userdata) {
 size_t header_callback(char *buffer, size_t size, size_t nitems, void *userdata) {
   HttpResponse* response = (HttpResponse*)userdata;
   std::string header(buffer, nitems);
-  std::vector<std::string> header_pair = split(header, ":");
-  if (header_pair.size() != 2) {
+  std::vector<std::string> header_pair = split(header, ":", 2);
+  if (header_pair.size() < 2) {
     return size * nitems;
   }
   std::string header_key = header_pair[0];
