@@ -14,7 +14,7 @@ TEST(ConfTest, FailLoading) {
             yunying::Conf::getInstance().get_origin_type());
   EXPECT_EQ(".", yunying::Conf::getInstance().get_root_dir());
   EXPECT_EQ("upstream.host", yunying::Conf::getInstance().get_upstream_host());
-  EXPECT_EQ("185.199.110.153", yunying::Conf::getInstance().get_upstream_ip());
+  EXPECT_EQ("185.199.110.153", yunying::Conf::getInstance().get_upstream_domain());
   EXPECT_EQ(80, yunying::Conf::getInstance().get_upstream_port());
 
   // load test_fail.lua and test values, should not change
@@ -30,7 +30,7 @@ TEST(ConfTest, FailLoading) {
             yunying::Conf::getInstance().get_origin_type());
   EXPECT_EQ(".", yunying::Conf::getInstance().get_root_dir());
   EXPECT_EQ("upstream.host", yunying::Conf::getInstance().get_upstream_host());
-  EXPECT_EQ("185.199.110.153", yunying::Conf::getInstance().get_upstream_ip());
+  EXPECT_EQ("185.199.110.153", yunying::Conf::getInstance().get_upstream_domain());
   EXPECT_EQ(80, yunying::Conf::getInstance().get_upstream_port());
 }
 
@@ -45,7 +45,7 @@ TEST(ConfTest, SuccessfulLoading) {
             yunying::Conf::getInstance().get_origin_type());
   EXPECT_EQ(".", yunying::Conf::getInstance().get_root_dir());
   EXPECT_EQ("upstream.host", yunying::Conf::getInstance().get_upstream_host());
-  EXPECT_EQ("185.199.110.153", yunying::Conf::getInstance().get_upstream_ip());
+  EXPECT_EQ("185.199.110.153", yunying::Conf::getInstance().get_upstream_domain());
   EXPECT_EQ(80, yunying::Conf::getInstance().get_upstream_port());
 
   // load test_success.lua and test values
@@ -61,6 +61,6 @@ TEST(ConfTest, SuccessfulLoading) {
             yunying::Conf::getInstance().get_origin_type());
   EXPECT_EQ("test_root", yunying::Conf::getInstance().get_root_dir());
   EXPECT_EQ("test.host", yunying::Conf::getInstance().get_upstream_host());
-  EXPECT_EQ("1.2.3.4", yunying::Conf::getInstance().get_upstream_ip());
+  EXPECT_EQ("1.2.3.4", yunying::Conf::getInstance().get_upstream_domain());
   EXPECT_EQ(23, yunying::Conf::getInstance().get_upstream_port());
 }

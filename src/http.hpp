@@ -152,6 +152,7 @@ class HttpResponse {
   size_t get_size() { return size_; }
   bool failed() { return failed_; }
   void set_header(const std::string key, const std::string value);
+  void delete_header(const std::string key);
   void set_status(HttpStatus status);
   void set_body(const std::string body);
 

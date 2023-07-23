@@ -74,96 +74,105 @@ std::string UpstreamOrigin::getKey(HttpRequest request) {
 }
 
 size_t writeCallback(char* ptr, size_t size, size_t nmemb, void* userdata) {
-    HttpResponse* response = (HttpResponse*)userdata;
-    response->set_body(std::string(ptr));
-    return size * nmemb;
+  HttpResponse* response = (HttpResponse*)userdata;
+  response->set_body(std::string(ptr, size * nmemb));
+  printf("callback response size: %d, %d\n", strlen(ptr), response->get_body().length());
+  return size * nmemb;
+}
+
+size_t header_callback(char *buffer, size_t size, size_t nitems, void *userdata) {
+  HttpResponse* response = (HttpResponse*)userdata;
+  std::string header(buffer, nitems);
+  std::vector<std::string> header_pair = split(header, ":");
+  if (header_pair.size() != 2) {
+    return size * nitems;
+  }
+  std::string header_key = header_pair[0];
+  std::string header_value = header_pair[1];
+  trim(header_key);
+  trim(header_value);
+  for (auto& c : header_key) c = toupper(c);
+  response->set_header(header_key, header_value);
+  return size * nitems;
 }
 
 HttpResponse* UpstreamOrigin::get(HttpRequest request, int* max_age) {
   HttpResponse* response = new HttpResponse();
-  CURL *curl = curl_easy_init();
-  if(curl) {
-    CURLcode res;
-    curl_easy_setopt(curl, CURLOPT_URL, "https://example.com");
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeCallback);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, response);
-    res = curl_easy_perform(curl);
-    curl_easy_cleanup(curl);
+  CURL* curl = curl_easy_init();
+  if (!curl) {
+    response->set_status(HttpStatus::INTERNAL_SERVER_ERROR);
+    return response;
   }
-  // HttpRequest upstream_request;
-  // upstream_request.set_method(request.get_method());
-  // upstream_request.set_path(request.get_path());
-  // upstream_request.set_host(Conf::getInstance().get_upstream_host());
-  // upstream_request.set_body(request.get_body());
-  // std::string upstream_ip = Conf::getInstance().get_upstream_ip();
-  // int upstream_port = Conf::getInstance().get_upstream_port();
 
-  // Conf::getInstance().get_lua().set_function(
-  //     "set_method", [&upstream_request](std::string method_str) {
-  //       if (MethodDict.find(method_str) == MethodDict.end()) {
-  //         upstream_request.set_method(MethodDict[method_str]);
-  //       } else {
-  //         upstream_request.set_method(HttpMethod::OTHER);
-  //       }
-  //     });
-  // Conf::getInstance().get_lua().set_function(
-  //     "set_path", [&upstream_request](std::string path) {
-  //       upstream_request.set_path(path);
-  //     });
-  // Conf::getInstance().get_lua().set_function(
-  //     "set_host", [&upstream_request](std::string host) {
-  //       upstream_request.set_host(host);
-  //     });
-  // Conf::getInstance().get_lua().set_function(
-  //     "set_body", [&upstream_request](std::string body) {
-  //       upstream_request.set_body(body);
-  //     });
-  // Conf::getInstance().get_lua().set_function(
-  //     "set_upstream_ip", [&upstream_ip](std::string ip) { upstream_ip = ip; });
-  // Conf::getInstance().get_lua().set_function(
-  //     "set_upstream_port",
-  //     [&upstream_port](int port) { upstream_port = port; });
+  HttpMethod upstream_method = request.get_method();
+  std::string upstream_protocol = Conf::getInstance().get_upstream_protocol();
+  std::string upstream_domain = Conf::getInstance().get_upstream_domain();
+  int upstream_port = Conf::getInstance().get_upstream_port();
+  std::string upstream_path = request.get_path();
+  std::string upstream_host = Conf::getInstance().get_upstream_host();
+  std::string upstream_body = request.get_body();
 
-  // sol::function upstream_set = Conf::getInstance().get_lua()["upstream_set"];
-  // if (upstream_set.valid()) {
-  //   std::function<void(std::string, std::string, std::string)>
-  //       upstream_set_func = upstream_set;
-  //   upstream_set_func(request.get_path(), MethodString[request.get_method()],
-  //                     request.get_host());
-  // }
+  Conf::getInstance().get_lua().set_function(
+      "set_method", [&upstream_method](std::string method_str) {
+        if (MethodDict.find(method_str) == MethodDict.end()) {
+          upstream_method = MethodDict[method_str];
+        } else {
+          upstream_method = HttpMethod::OTHER;
+        }
+      });
+  Conf::getInstance().get_lua().set_function(
+      "set_path",
+      [&upstream_path](std::string path_str) { upstream_path = path_str; });
+  Conf::getInstance().get_lua().set_function(
+      "set_host",
+      [&upstream_host](std::string host_str) { upstream_host = host_str; });
+  Conf::getInstance().get_lua().set_function(
+      "set_body",
+      [&upstream_body](std::string body_str) { upstream_body = body_str; });
+  Conf::getInstance().get_lua().set_function(
+      "set_upstream_domain", [&upstream_domain](std::string domain_str) {
+        upstream_domain = domain_str;
+      });
+  Conf::getInstance().get_lua().set_function(
+      "set_upstream_port",
+      [&upstream_port](int port) { upstream_port = port; });
 
-  // int upstream_fd = socket(AF_INET, SOCK_STREAM, 0);
-  // struct sockaddr_in upstream_addr;
-  // upstream_addr.sin_family = AF_INET;
-  // upstream_addr.sin_port = htons(upstream_port);
-  // upstream_addr.sin_addr.s_addr = inet_addr(upstream_ip.c_str());
-  // connect(upstream_fd, (struct sockaddr*)&upstream_addr, sizeof(upstream_addr));
+  sol::function upstream_set = Conf::getInstance().get_lua()["upstream_set"];
+  if (upstream_set.valid()) {
+    std::function<void(std::string, std::string, std::string)>
+        upstream_set_func = upstream_set;
+    upstream_set_func(request.get_path(), MethodString[request.get_method()],
+                      request.get_host());
+  }
 
-  // Connection upstream_connection(upstream_fd);
-  // upstream_connection.setSendRaw(upstream_request.to_string());
-  // while (!upstream_connection.getSendDone()) {
-  //   upstream_connection.send();
-  // }
-  // while (!upstream_connection.getRecvDone()) {
-  //   upstream_connection.recv();
-  // }
-  // HttpResponse* upstream_response =
-  //     new HttpResponse(upstream_connection.getReceivedRaw());
-  // if (upstream_response->get_header("Cache-Control") != "") {
-  //   std::vector<std::string> cache_controls =
-  //       split(upstream_response->get_header("Cache-Control"), ",");
-  //   for (int i = 0; i < (int)cache_controls.size(); i++) {
-  //     std::vector<std::string> cache_control = split(cache_controls[i], "=");
-  //     if (cache_control[0] == "max-age") {
-  //       *max_age = std::stoi(cache_control[1]);
-  //       break;
-  //     }
-  //   }
-  // }
-  // if (*max_age < Conf::getInstance().get_cache_default_max_age()) {
-  //   *max_age = Conf::getInstance().get_cache_default_max_age();
-  // }
-  // Metrics::getInstance().count("upstream_count", 1);
+  std::string upstream_url =
+      upstream_protocol + "://" + upstream_domain +
+      ((upstream_port == 0) ? "" : (":" + std::to_string(upstream_port))) +
+      upstream_path;
+  printf("upstream_url: %s\n", upstream_url.c_str());
+  curl_easy_setopt(curl, CURLOPT_URL, upstream_url.c_str());
+  curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, MethodString[upstream_method].c_str());
+  if (upstream_body.length() > 0) {
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, upstream_body.c_str());
+  }
+  curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeCallback);
+  curl_easy_setopt(curl, CURLOPT_WRITEDATA, response);
+  curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, header_callback);
+  curl_easy_setopt(curl, CURLOPT_HEADERDATA, response);
+  struct curl_slist* headers = NULL;
+  printf("upstream_host: %s\n", upstream_host.c_str());
+  headers = curl_slist_append(headers, ("Host: " + upstream_host).c_str());
+  curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+  CURLcode res = curl_easy_perform(curl);
+  if (res != CURLE_OK) {
+    printf("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+    response->set_status(HttpStatus::INTERNAL_SERVER_ERROR);
+  }
+  long http_code = 0;
+  curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
+  response->set_status((HttpStatus)http_code);
+  curl_easy_cleanup(curl);
+  response->delete_header("TRANSFER-ENCODING");
   return response;
 }
 }  // namespace yunying

@@ -28,6 +28,7 @@ class Connection {
   void setResponse(HttpResponse* response) { response_ = response; }
   void setRequest(HttpRequest* request) { request_ = request; }
   void setSendRaw(std::string send_raw) {
+    printf("setSendRaw size: %d\n", send_raw.length());
     send_raw_ = send_raw;
     send_started_ = true;
     send_offset_ = 0;
