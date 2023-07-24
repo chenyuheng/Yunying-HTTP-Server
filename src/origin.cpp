@@ -136,6 +136,11 @@ HttpResponse* UpstreamOrigin::get(HttpRequest request, int* max_age) {
   Conf::getInstance().get_lua().set_function(
       "set_upstream_port",
       [&upstream_port](int port) { upstream_port = port; });
+  Conf::getInstance().get_lua().set_function(
+      "set_upstream_protocol", [&upstream_protocol](std::string protocol_str) {
+        if (protocol_str == "http" || protocol_str == "https")
+          upstream_protocol = protocol_str;
+      });
 
   sol::function upstream_set = Conf::getInstance().get_lua()["upstream_set"];
   if (upstream_set.valid()) {

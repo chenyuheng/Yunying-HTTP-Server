@@ -30,15 +30,16 @@ Origin is the source of the content, it can be a static file server or an upstre
 
 If static file server is used, the `origin_type` should be set to `static_file`, and the `root_dir` should be set to the root directory of the static file server.
 
-If upstream server is used, the `origin_type` should be set to `upstream`, and the `upstream_host`, `upstream_ip` and `upstream_port` should be set to the host, ip and port of the upstream server. You can also write your own upstream logic in the `upstream_set` function.
+If upstream server is used, the `origin_type` should be set to `upstream`, and the `upstream_host`, `upstream_domain` and `upstream_protocol` should be set to the host name, domain (or ip) and protocol of the upstream server. You can also write your own upstream logic in the `upstream_set` function.
 
 | Name | Type | Default | Description | Used For |
 | ---- | ---- | ------- | ----------- | ------- |
 | origin_type | string | "static_file" | The type of the origin, can be "static_file" or "upstream" | - |
 | root_dir | string | "." | The root directory of the static file server | static_file |
-| upstream_host | string | "upstream.host" | The host of the upstream server | upstream |
-| upstream_ip | string | "185.199.110.153" | The ip of the upstream server | upstream |
-| upstream_port | int16 | 80 | The port of the upstream server | upstream |
+| upstream_host | string | "upstream.host" | The host of the upstream server, will be set on the header "host" in the upstream request | upstream |
+| upstream_domain | string | "185.199.110.153" | The domain or IP of the upstream server | upstream |
+| upstream_protocol | string | "http" | The protocol of the upstream server, could be either "http" or "https" | upstream |
+| upstream_port | int16 | 80 or 443 | The port of the upstream server | upstream |
 
 #### `upstream_set` function
 You can define your own upstream logic in the `upstream_set` function. When Yunying receives a request, it will generate an upstream request to retrieve the content from the upstream server. You can use the `upstream_set` function to customize the upstream request before it is sent to the upstream server.
@@ -58,8 +59,9 @@ function set_path(path)
 function set_method(method)
 function set_host(host)
 function set_body(body)
-function set_upstream_ip(ip_str)
+function set_upstream_domain(domain_str)
 function set_upstream_port(port)
+function set_upstream_protocol(protocol)
 ```
 
 ## Example config

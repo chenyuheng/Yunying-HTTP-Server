@@ -33,6 +33,10 @@ void Conf::parseLua() {
   upstream_port_ = luaGet<uint16_t>("upstream_port", upstream_port_);
   upstream_protocol_ =
       luaGet<std::string>("upstream_protocol", upstream_protocol_);
+  if (upstream_protocol_ != "http" && upstream_protocol_ != "https") {
+    printf("Unknown upstream protocol: %s\n", upstream_protocol_.c_str());
+    exit(1);
+  }
   printf("Finished loading config\n\n");
 }
 

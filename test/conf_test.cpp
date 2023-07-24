@@ -17,6 +17,7 @@ TEST(ConfTest, FailLoading) {
   EXPECT_EQ("185.199.110.153",
             yunying::Conf::getInstance().get_upstream_domain());
   EXPECT_EQ(0, yunying::Conf::getInstance().get_upstream_port());
+  EXPECT_EQ("http", yunying::Conf::getInstance().get_upstream_protocol());
 
   // load test_fail.lua and test values, should not change
   yunying::Conf::getInstance().set_lua_config_path(
@@ -34,6 +35,7 @@ TEST(ConfTest, FailLoading) {
   EXPECT_EQ("185.199.110.153",
             yunying::Conf::getInstance().get_upstream_domain());
   EXPECT_EQ(0, yunying::Conf::getInstance().get_upstream_port());
+  EXPECT_EQ("http", yunying::Conf::getInstance().get_upstream_protocol());
 }
 
 TEST(ConfTest, SuccessfulLoading) {
@@ -50,6 +52,7 @@ TEST(ConfTest, SuccessfulLoading) {
   EXPECT_EQ("185.199.110.153",
             yunying::Conf::getInstance().get_upstream_domain());
   EXPECT_EQ(0, yunying::Conf::getInstance().get_upstream_port());
+  EXPECT_EQ("http", yunying::Conf::getInstance().get_upstream_protocol());
 
   // load test_success.lua and test values
   yunying::Conf::getInstance().set_lua_config_path(
@@ -67,4 +70,5 @@ TEST(ConfTest, SuccessfulLoading) {
   EXPECT_EQ("1.2.3.4", yunying::Conf::getInstance().get_upstream_domain());
   EXPECT_EQ("https", yunying::Conf::getInstance().get_upstream_protocol());
   EXPECT_EQ(23, yunying::Conf::getInstance().get_upstream_port());
+  EXPECT_EQ("https", yunying::Conf::getInstance().get_upstream_protocol());
 }
