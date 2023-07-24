@@ -29,8 +29,14 @@ void Conf::parseLua() {
   }
   root_dir_ = luaGet<std::string>("root_dir", root_dir_);
   upstream_host_ = luaGet<std::string>("upstream_host", upstream_host_);
-  upstream_ip_ = luaGet<std::string>("upstream_ip", upstream_ip_);
+  upstream_domain_ = luaGet<std::string>("upstream_domain", upstream_domain_);
   upstream_port_ = luaGet<uint16_t>("upstream_port", upstream_port_);
+  upstream_protocol_ =
+      luaGet<std::string>("upstream_protocol", upstream_protocol_);
+  if (upstream_protocol_ != "http" && upstream_protocol_ != "https") {
+    printf("Unknown upstream protocol: %s\n", upstream_protocol_.c_str());
+    exit(1);
+  }
   printf("Finished loading config\n\n");
 }
 

@@ -35,8 +35,9 @@ class Conf {
   std::string root_dir_ = ".";
   // used for upstream origin only
   std::string upstream_host_ = "upstream.host";
-  std::string upstream_ip_ = "185.199.110.153";
-  uint16_t upstream_port_ = 80;
+  std::string upstream_domain_ = "185.199.110.153";
+  uint16_t upstream_port_ = 0;
+  std::string upstream_protocol_ = "http";
 
  public:
   static Conf& getInstance() {
@@ -54,9 +55,10 @@ class Conf {
   std::string get_root_dir() { return root_dir_; }
   int get_cache_default_max_age() { return cache_default_max_age_; }
   std::string get_upstream_host() { return upstream_host_; }
-  std::string get_upstream_ip() { return upstream_ip_; }
+  std::string get_upstream_domain() { return upstream_domain_; }
   uint16_t get_upstream_port() { return upstream_port_; }
   int get_cache_clean_interval() { return cache_clean_interval_; }
+  std::string get_upstream_protocol() { return upstream_protocol_; }
 };
 }  // namespace yunying
 

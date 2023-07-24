@@ -8,8 +8,9 @@ cache_default_max_age = 344
 cache_clean_interval = 455
 
 -- origin config
-origin_type = "upstream"            -- static_file or upstream
-root_dir = "test_root"              -- static_file only
-upstream_host = "test.host"         -- upstream only
-upstream_ip = "1.2.3.4"             -- upstream only
-upstream_port = 23                  -- upstream only
+origin_type = "upstream"
+root_dir = "test_root"
+upstream_host = "test.host"
+upstream_domain = "1.2.3.4"
+upstream_protocol = "https"
+upstream_port = 23
