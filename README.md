@@ -3,6 +3,16 @@ Yunying(云影) is a simple HTTP server that supports static file serving, rever
 
 Yunying can now serve static files and reverse proxy for other HTTP or HTTPS servers. It cannot serve HTTPS yet.
 
+## Contents
+* [Build and Run](#build-and-run)
+* [Design](#design)
+  + [Thread Model](#thread-model)
+  + [Some Object-Oriented Design Practices](#some-objedct-oriented-design-practices)
+* [Performance Benchmarks](#performance-benchmarks)
+  + [Reverse Proxy for Wikipedia](#reverse-proxy-for-wikipedia)
+* [Libraries Used](#libraries-used)
+
+
 ## Build and Run
 You need a Linux machine and CMake to build and run Yunying.
 
@@ -23,10 +33,39 @@ After build, you will get `yunying` executable file. You can refer to the [confi
 build/yunying [config_file] # config_file can be omitted, default to ./config.lua
 ```
 
+Reference: [Configuration Document](docs/config.md)
+
+## Design
+Yunying is a single-process, multi-threaded web server. 
+
+### Thread Model
+Yunying utilizes four types of threads in its architecture:
+* Main thread: The entrance and control thread for the server.
+* Listener thread: Listens for connections from clients and allocate them to worker threads via epoll instances.
+* Worker threads: Could have multiple worker threads. They interact with clients via connections, parse and craft HTTP requests and responses; using cache to get contents from either upstream server or the disk.
+* Cache cleaning thread: Free up expired cache items from memory periodically.
+
+Below diagram shows the thread model of Yunying, note that Cache is not belong to any thread, it's a piece of memory that all worker threads and cache cleaning thread can access.
+
+<img src="docs/thread_model.svg">
+
+### Some Object-Oriented Design Practices
+Singleton Pattern: The `Conf` instance and the `Metrics` instance are implemented as singletons. This design enables effortless access to configurations or the ability to record metrics from anywhere in the program by obtaining the instances easily.
+
+Abstract Class: The `Origin` class serves as an abstract class representing the content origin. It can be specialized into either `UpstreamOrigin` or `StaticFileOrigin`. The abstract class defines two pure virtual methods:
+
+```cpp
+virtual std::string getKey(HttpRequest request) = 0;
+virtual HttpResponse* get(HttpRequest request, int* max_age) = 0;
+```
+
+These methods are utilized by the cache module to retrieve keys for indexing cache items and obtaining contents along with their expiration age in the cache. Both `UpstreamOrigin` and `StaticFileOrigin` inherit from the `Origin` class and provide corresponding implementations of these two methods to cater to different types of content origins.
+
+
 ## Performance Benchmarks
 Run benchmarks with [wrk](https://github.com/wg/wrk) in a cloud server with 2 CPU cores and 2 GB memory.
 
-### Reverse Proxy for cpc.people.com.cn
+### Reverse Proxy for Wikipedia
 Run wrk for two URLs, one is a `301` page which is short and the other is the main page of en.wikipedia.org which is relatively long. The results are as follows:
 
 ```bash
