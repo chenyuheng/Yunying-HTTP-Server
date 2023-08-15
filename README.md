@@ -7,7 +7,7 @@ Yunying can now serve static files and reverse proxy for other HTTP or HTTPS ser
 * [Build and Run](#build-and-run)
 * [Design](#design)
   + [Thread Model](#thread-model)
-  + [Some Objedct-Oriented Design Practices](#some-objedct-oriented-design-practices)
+  + [Some Object-Oriented Design Practices](#some-objedct-oriented-design-practices)
 * [Performance Benchmarks](#performance-benchmarks)
   + [Reverse Proxy for Wikipedia](#reverse-proxy-for-wikipedia)
 * [Libraries Used](#libraries-used)
@@ -33,7 +33,7 @@ After build, you will get `yunying` executable file. You can refer to the [confi
 build/yunying [config_file] # config_file can be omitted, default to ./config.lua
 ```
 
-Recerence: [Configuration Document](docs/config.md)
+Reference: [Configuration Document](docs/config.md)
 
 ## Design
 Yunying is a single-process, multi-threaded web server. 
@@ -42,14 +42,14 @@ Yunying is a single-process, multi-threaded web server.
 Yunying utilizes four types of threads in its architecture:
 * Main thread: The entrance and control thread for the server.
 * Listener thread: Listens for connections from clients and allocate them to worker threads via epoll instances.
-* Worker threads: Could have multiple worker threads. They interact with clients via connections, parse and craft HTTP requests and responses; using cache to get conntents from either upstream server or the disk.
+* Worker threads: Could have multiple worker threads. They interact with clients via connections, parse and craft HTTP requests and responses; using cache to get contents from either upstream server or the disk.
 * Cache cleaning thread: Free up expired cache items from memory periodically.
 
 Below diagram shows the thread model of Yunying, note that Cache is not belong to any thread, it's a piece of memory that all worker threads and cache cleaning thread can access.
 
 <img src="docs/thread_model.svg">
 
-### Some Objedct-Oriented Design Practices
+### Some Object-Oriented Design Practices
 Singleton Pattern: The `Conf` instance and the `Metrics` instance are implemented as singletons. This design enables effortless access to configurations or the ability to record metrics from anywhere in the program by obtaining the instances easily.
 
 Abstract Class: The `Origin` class serves as an abstract class representing the content origin. It can be specialized into either `UpstreamOrigin` or `StaticFileOrigin`. The abstract class defines two pure virtual methods:
