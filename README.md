@@ -3,7 +3,15 @@ Yunying(云影) is a simple HTTP server that supports static file serving, rever
 
 Yunying can now serve static files and reverse proxy for other HTTP or HTTPS servers. It cannot serve HTTPS yet.
 
-* [Configuration Document](docs/config.md)
+## Contents
+* [Build and Run](#build-and-run)
+* [Design](#design)
+  + [Thread Model](#thread-model)
+  + [Some Objedct-Oriented Design Practices](#some-objedct-oriented-design-practices)
+* [Performance Benchmarks](#performance-benchmarks)
+  + [Reverse Proxy for Wikipedia](#reverse-proxy-for-wikipedia)
+* [Libraries Used](#libraries-used)
+
 
 ## Build and Run
 You need a Linux machine and CMake to build and run Yunying.
@@ -25,6 +33,8 @@ After build, you will get `yunying` executable file. You can refer to the [confi
 build/yunying [config_file] # config_file can be omitted, default to ./config.lua
 ```
 
+Recerence: [Configuration Document](docs/config.md)
+
 ## Design
 Yunying is a single-process, multi-threaded web server. 
 
@@ -40,7 +50,7 @@ Below diagram shows the thread model of Yunying, note that Cache is not belong t
 <img src="docs/thread_model.svg">
 
 ### Some Objedct-Oriented Design Practices
-Singleton Pattern: The Configuration instance and the Metrics instance are implemented as singletons. This design enables effortless access to configurations or the ability to record metrics from anywhere in the program by obtaining the instances easily.
+Singleton Pattern: The `Conf` instance and the `Metrics` instance are implemented as singletons. This design enables effortless access to configurations or the ability to record metrics from anywhere in the program by obtaining the instances easily.
 
 Abstract Class: The `Origin` class serves as an abstract class representing the content origin. It can be specialized into either `UpstreamOrigin` or `StaticFileOrigin`. The abstract class defines two pure virtual methods:
 
